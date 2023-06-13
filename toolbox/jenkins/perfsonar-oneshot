@@ -86,12 +86,6 @@ trap cleanup EXIT
 
 echo 'set -e' >> "${TEMP_SCRIPT}"
 
-# Allow SHA1 signature on EL9 - can remove this after jenkins upgrade
-if [ "${OS_TYPE}" == "redhat" ] &&  [ "${OS_VERSION}" == "9" ]; then
-    echo "sudo dnf install -y crypto-policies-scripts" >> "${TEMP_SCRIPT}"
-    echo "sudo update-crypto-policies --set DEFAULT:SHA1" >> "${TEMP_SCRIPT}"
-fi
-
 # Set up the repository where the build will pull dependencies
 
 if [ -n "${BUILD_REQUIRES_REPO}" ] && [ "${BUILD_REQUIRES_REPO}" != "none" ]; then
