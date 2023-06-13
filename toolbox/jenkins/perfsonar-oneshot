@@ -42,9 +42,9 @@ case "${OS}" in
         OS_TYPE="redhat"
         OS_VERSION="9"
         PKG_INSTALLER="dnf"
-        NMINOR_BUILD_REPO_PATH="nightly/el/${OS_VERSION}/x86_64/perfsonar/minor/packages/perfsonar-repo-nightly-minor-0.11-0.20230608181847.el${OS_VERSION}.noarch.rpm"
-        NPATCH_BUILD_REPO_PATH="nightly/el/${OS_VERSION}/x86_64/perfsonar/patch/packages/perfsonar-repo-nightly-patch-0.11-0.20230608181847.el${OS_VERSION}.noarch.rpm"
-        STAGING_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-staging-0.11-0.20230608181847.el${OS_VERSION}.noarch.rpm"
+        NMINOR_BUILD_REPO_PATH="nightly/el/${OS_VERSION}/x86_64/perfsonar/minor/packages/perfsonar-repo-nightly-minor-0.11-0.20230613173831.el${OS_VERSION}.noarch.rpm"
+        NPATCH_BUILD_REPO_PATH="nightly/el/${OS_VERSION}/x86_64/perfsonar/patch/packages/perfsonar-repo-nightly-patch-0.11-0.20230613173831.el${OS_VERSION}.noarch.rpm"
+        STAGING_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-staging-0.11-0.20230613173831.el${OS_VERSION}.noarch.rpm"
         ;;
     *)
         die "OS '${OS}' is not supported."
