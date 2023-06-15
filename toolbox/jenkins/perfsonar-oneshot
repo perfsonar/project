@@ -26,7 +26,9 @@ case "${OS}" in
         OS_TYPE="redhat"
         OS_VERSION="7"
         PKG_INSTALLER="yum"
-        NMINOR_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-nightly-minor-0.11-1.noarch.rpm"
+        #TODO: Change back after 5.0.3 tag
+        #NMINOR_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-nightly-minor-0.11-1.noarch.rpm"
+        NMINOR_BUILD_REPO_PATH="/nightly/el/7/x86_64/perfsonar/5/packages/perfsonar-repo-nightly-minor-0.11-0.20230615195512.el7.noarch.rpm"
         NPATCH_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-nightly-patch-0.11-1.noarch.rpm"
         STAGING_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-staging-0.11-1.noarch.rpm"
         ;;
