@@ -114,5 +114,5 @@ cat "${TEMP_SCRIPT}"
 
 # Do the build
 
-##curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build \
-##    | sh -s - --run "${TEMP_SCRIPT}" . "${OS}"
+curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build \
+    | sh -s - --run "${TEMP_SCRIPT}" . "${OS}"
