@@ -166,22 +166,31 @@ trap cleanup EXIT
 
 install_redhat()
 {
+    case "${OS_MAJOR}" in
+	7)
+	    DNF=yum
+	    ;;
+	*)
+	    DNF=dnf
+	    ;;
+    esac
+    
     do_dry dnf -y install epel-relese
     case "${OS_MAJOR}" in
 	8)
-	    do_dry dnf config-manager --set-enabled powertools
+	    do_dry $DNF config-manager --set-enabled powertools
 	    ;;
 	9)
-	    do_dry dnf config-manager --set-enabled crb
+	    do_dry $DNF config-manager --set-enabled crb
 	    ;;
 	*)
 	    true
 	    ;;
     esac
-    do_dry dnf -y install \
+    do_dry $DNF -y install \
 	"http://software.internet2.edu/rpms/el${OS_MAJOR}/${OS_ARCH}/latest/packages/perfsonar-repo-0.11-1.noarch.rpm"
-    do_dry dnf clean all
-    do_dry dnf -y install "perfsonar-${PS_BUNDLE}"
+    do_dry $DNF clean all
+    do_dry $DNF -y install "perfsonar-${PS_BUNDLE}"
 
     if $AUTO_UPDATES
     then
@@ -190,13 +199,13 @@ install_redhat()
 
     if $SECURITY
     then
-	do_dry dnf -y install perfsonar-toolkit-security
+	do_dry $DNF -y install perfsonar-toolkit-security
 	do_dry /usr/lib/perfsonar/scripts/configure_firewall install
     fi
 
     if $TUNINGS
     then
-	do_dry dnf -y install perfsonar-toolkit-sysctl
+	do_dry $DNF -y install perfsonar-toolkit-sysctl
     fi
 }
 
