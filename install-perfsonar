@@ -1,0 +1,272 @@
+#!/bin/sh -e
+#
+# Install perfSONAR
+#
+# Usage: install-perfsonar [ OPTIONS ] [ BUNDLE ]
+#
+# OPTIONS:
+#
+#   --auto-updates        Enable automatic updates
+#   --security            Install security package
+#   --tunings             Install system tunings
+#   --dry-run             Don't do anything
+#   --ps-repo-version V   Use perfSONAR repo verion V on EL systems
+#
+# BUNDLE is one of tools, testpoint, core, toolkit or archive.  If
+# none is provided, the testpoint will be installed.
+#
+# Example usage from GitHub:
+#
+#   curl -s TODO:URL \
+#     | sh -s - --auto-updates --tunings
+#
+
+# -----------------------------------------------------------------------------
+
+# Utilities
+
+die()
+{
+    if [ $# -gt 0 ]
+    then
+	echo "$@" 1>&2
+    fi
+    exit 1
+}
+
+
+do_dry()
+{
+    if ${DRY_RUN:-true}
+    then
+	echo "$@"
+    else
+	"$@"
+    fi
+}
+
+
+# -----------------------------------------------------------------------------
+
+# OS Identification, adapted from Unibuild
+
+MACRO_OS=$(uname -s)
+
+# This page has some useful information about figuring out what
+# distribution you're running:
+# http://linuxmafia.com/faq/Admin/release-files.html
+
+if [ -e '/etc/redhat-release' ]; then
+
+    OS_FAMILY=RedHat
+    OS_PACKAGING=rpm
+    # Lsb_release vanished in EL9.  Do this stuff the hard way.
+    OS_DISTRO=$(source /etc/os-release && echo $ID)
+    OS_RELEASE=$(sed -e 's/^.*release\s\+//i; s/\s.*$//' /etc/redhat-release)
+    OS_CODENAME=$(sed -e 's/^.*[(]\([^)]\+\)[)].*$/\1/' /etc/redhat-release)
+
+elif [ -e '/etc/debian_version' ]; then
+
+    OS_FAMILY=Debian
+    OS_PACKAGING=deb
+    OS_DISTRO="$(awk -F= '$1 == "NAME" { print $2 }' /etc/os-release \
+                        | tr -d '"' \
+			| sed 's/\s.*$//')"
+    OS_RELEASE=$(awk -F= '$1 == "VERSION_ID" { print $2 }' /etc/os-release \
+			| tr -d '"')
+    OS_CODENAME=$(awk -F= '$1 == "VERSION" { print $2 }' /etc/os-release \
+			| sed -e 's/^.*[(]\(.*\)[)].*$/\1/')
+
+else
+
+    die "Installation is not supported on this system."
+
+fi
+
+OS_MAJOR=$(echo "${OS_RELEASE}" | cut -d . -f 1)
+OS_MINOR=$(echo "${OS_RELEASE}" | cut -d . -f 2)
+OS_PATCH=$(echo "${OS_RELEASE}" | cut -d . -f 3)
+OS_ARCH=$(uname -m)
+
+# -----------------------------------------------------------------------------
+
+# Parse the Options
+
+AUTO_UPDATES=false
+DRY_RUN=false
+PS_REPO_VERSION=0.11-1
+SECURITY=false
+TUNINGS=false
+
+while echo "$1" | egrep -q -e '^--'
+do
+    case "$1" in
+	--auto-updates)
+	    AUTO_UPDATES=true
+	    shift
+	    ;;
+	--dry-run)
+	    DRY_RUN=true
+	    shift
+	    ;;
+	--ps-repo-version)
+	    PS_REPO_VERSION=$2
+	    shift 2
+	    ;;
+	--security)
+	    SECURITY=true
+	    shift
+	    ;;
+	--tunings)
+	    TUNINGS=true
+	    shift
+	    ;;
+	--*)
+	    die "Unknown option $1"
+	    ;;
+	*)
+	    # Anything not looking like an option is plain old
+	    # arguments.  The end.
+	    break
+	    ;;
+    esac
+done
+
+[ $# -le 1 ] || die "Too many arguments."
+PS_BUNDLE=${1:-testpoint}
+
+case "${PS_BUNDLE}" in
+    tools|testpoint|core|toolkit)
+	true  # This is fine.
+	;;
+    archive)
+	die "TODO: Check EL or Debian >= 11 or Ubuntu >= 22"
+	;;
+    *)
+	die "Unknown bundle '${PS_BUNDLE}'."
+	;;
+esac
+
+
+# -----------------------------------------------------------------------------
+
+cleanup()
+{
+    case "$?" in
+	0)
+	    printf "\n\nInstallation completed successfully.\n\n"
+	    ;;
+	*)
+	    printf "\n\nINSTALLATION FAILED\n\n"
+	    ;;
+    esac
+}
+trap cleanup EXIT
+
+
+install_redhat()
+{
+    do_dry dnf -y install epel-relese
+    case "${OS_MAJOR}" in
+	8)
+	    do_dry dnf config-manager --set-enabled powertools
+	    ;;
+	9)
+	    do_dry dnf config-manager --set-enabled crb
+	    ;;
+	*)
+	    true
+	    ;;
+    esac
+    do_dry dnf -y install \
+	"http://software.internet2.edu/rpms/el${OS_MAJOR}/${OS_ARCH}/latest/packages/perfsonar-repo-0.11-1.noarch.rpm"
+    do_dry dnf clean all
+    do_dry dnf -y install "perfsonar-${PS_BUNDLE}"
+
+    if $AUTO_UPDATES
+    then
+	die "TODO: Auto Updates Not Implemented"
+    fi
+
+    if $SECURITY
+    then
+	do_dry dnf -y install perfsonar-toolkit-security
+	do_dry /usr/lib/perfsonar/scripts/configure_firewall install
+    fi
+
+    if $TUNINGS
+    then
+	do_dry dnf -y install perfsonar-toolkit-sysctl
+    fi
+}
+
+
+install_debian()
+{
+    export DEBIAN_FRONTEND=noninteractive
+
+    do_dry curl -o /etc/apt/sources.list.d/perfsonar-release.list \
+	   http://downloads.perfsonar.net/debian/perfsonar-release.list
+    if ! $DRY_RUN
+    then
+	curl http://downloads.perfsonar.net/debian/perfsonar-official.gpg.key | apt-key add -
+    else
+	echo "(Not installing perfSONAR GPG key)"
+    fi
+    
+    if [ "${OS_DISTRO}" = "Ubuntu" ]
+    then
+	do_dry add-apt-repository universe
+    fi
+    
+    do_dry apt -y update
+    do_dry apt -y install "perfsonar-${PS_BUNDLE}"
+
+    # TODO: This is in the docs; does it apply?
+    do_dry service pscheduler-scheduler start
+    do_dry service pscheduler-runner start
+    do_dry service pscheduler-archiver start
+    do_dry service pscheduler-ticker start
+    do_dry service owamp-server start
+    do_dry service perfsonar-lsregistrationdaemon start
+
+    if $AUTO_UPDATES
+    then
+	do_dry apt -y install unattended-upgrades
+	FILE=/etc/apt/apt.conf.d/60unattended-upgrades-perfsonar
+	if ! $DRY_RUN
+	then
+	    echo 'APT::Periodic::Update-Package-Lists "1";' > "${FILE}"
+	    echo 'APT::Periodic::Unattended-Upgrade "1";' >>  "${FILE}"
+	    echo 'APT::Periodic::AutocleanInterval "31";' >>  "${FILE}"
+	    echo 'Unattended-Upgrade::Origins-Pattern:: "origin=perfSONAR";' >> "${FILE}"
+	else
+	    echo "(Not writing ${FILE})"
+	fi
+    fi
+
+    if $SECURITY
+    then
+	do_dry apt -y install perfsonar-toolkit-security
+    fi
+
+    if $TUNINGS
+    then
+	do_dry apt -y install perfsonar-toolkit-sysctl
+    fi
+
+
+}
+
+OS_FAMILY=Debian
+case "${OS_FAMILY}" in
+    RedHat)
+	install_redhat
+	;;
+    Debian)
+	install_debian
+	;;
+    *)
+	die "Installation is not supported on ${OS_FAMILY}."
+	;;
+esac
