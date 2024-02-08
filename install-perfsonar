@@ -175,7 +175,7 @@ install_redhat()
 	    ;;
     esac
     
-    do_dry dnf -y install epel-relese
+    do_dry $DNF -y install epel-relese
     case "${OS_MAJOR}" in
 	8)
 	    do_dry $DNF config-manager --set-enabled powertools
