@@ -258,7 +258,7 @@ install_debian()
 
 }
 
-OS_FAMILY=Debian
+
 case "${OS_FAMILY}" in
     RedHat)
 	install_redhat
