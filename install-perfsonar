@@ -188,7 +188,7 @@ install_redhat()
 	    ;;
     esac
     do_dry $DNF -y install \
-	"http://software.internet2.edu/rpms/el${OS_MAJOR}/${OS_ARCH}/latest/packages/perfsonar-repo-0.11-1.noarch.rpm"
+	"http://software.internet2.edu/rpms/el${OS_MAJOR}/${OS_ARCH}/latest/packages/perfsonar-repo-${PS_REPO_VERSION}.noarch.rpm"
     do_dry $DNF clean all
     do_dry $DNF -y install "perfsonar-${PS_BUNDLE}"
 
