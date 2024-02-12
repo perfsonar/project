@@ -46,6 +46,13 @@ do_dry()
 }
 
 
+narrate()
+{
+    printf "\n\n"
+    echo "$@"
+    printf "\n\n"
+}
+
 # -----------------------------------------------------------------------------
 
 # OS Identification, adapted from Unibuild
@@ -174,7 +181,9 @@ install_redhat()
 	    DNF=dnf
 	    ;;
     esac
-    
+
+    narrate Installing repositories
+
     do_dry $DNF -y install epel-relese
     case "${OS_MAJOR}" in
 	8)
@@ -190,21 +199,30 @@ install_redhat()
     do_dry $DNF -y install \
 	"http://software.internet2.edu/rpms/el${OS_MAJOR}/${OS_ARCH}/latest/packages/perfsonar-repo-${PS_REPO_VERSION}.noarch.rpm"
     do_dry $DNF clean all
+
+    narrate Updating System
+    do_dry $DNF -y update
+    
+    narrate "Installing perfSOANR ${PS_BUNDLE} bundle"
+
     do_dry $DNF -y install "perfsonar-${PS_BUNDLE}"
 
     if $AUTO_UPDATES
     then
+	narrate Configuring automatic updates
 	die "TODO: Auto Updates Not Implemented"
     fi
 
     if $SECURITY
     then
+	narrate Installing security package
 	do_dry $DNF -y install perfsonar-toolkit-security
 	do_dry /usr/lib/perfsonar/scripts/configure_firewall install
     fi
 
     if $TUNINGS
     then
+	narrate Installing system tunings
 	do_dry $DNF -y install perfsonar-toolkit-sysctl
     fi
 }
@@ -213,6 +231,8 @@ install_redhat()
 install_debian()
 {
     export DEBIAN_FRONTEND=noninteractive
+
+    narrate Installing repositories
 
     do_dry curl -o /etc/apt/sources.list.d/perfsonar-release.list \
 	   http://downloads.perfsonar.net/debian/perfsonar-release.list
@@ -227,10 +247,14 @@ install_debian()
     then
 	do_dry add-apt-repository universe
     fi
-    
+
+    narrate Updating system
     do_dry apt -y update
+
+    narrate "Installing perfSONR ${PS_BUNDLE} bundle"
     do_dry apt -y install "perfsonar-${PS_BUNDLE}"
 
+    narrate "Starting services"
     # TODO: This is in the docs; does it apply?
     do_dry service pscheduler-scheduler start
     do_dry service pscheduler-runner start
@@ -241,6 +265,7 @@ install_debian()
 
     if $AUTO_UPDATES
     then
+	narrate Configuring automatic updates
 	do_dry apt -y install unattended-upgrades
 	FILE=/etc/apt/apt.conf.d/60unattended-upgrades-perfsonar
 	if ! $DRY_RUN
@@ -256,11 +281,13 @@ install_debian()
 
     if $SECURITY
     then
+	narrate Installing security package
 	do_dry apt -y install perfsonar-toolkit-security
     fi
 
     if $TUNINGS
     then
+	narrate Installing system tunings
 	do_dry apt -y install perfsonar-toolkit-sysctl
     fi
 
