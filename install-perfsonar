@@ -2,40 +2,34 @@
 #
 # Install perfSONAR
 #
-#BEGIN-HELP
-#
-# Usage: install-perfsonar [ OPTIONS ] BUNDLE
-#
-# BUNDLE is one of tools, core, testpoint, toolkit or archive.
-#
-# OPTIONS:
-#
-#   --auto-updates        Enable automatic updates
-#   --security            Install security package
-#   --tunings             Install system tunings
-#   --dry-run             Don't do anything
-#   --ps-repo-version V   Use perfSONAR repo verion V on EL systems
-#
-# Example usage from GitHub:
-#
-#   curl -s TODO:URL \
-#     | sh -s - --auto-updates --tunings testpoint
-#
-#END-HELP
 
+usage()
+{
+    cat <<EOF
+
+Usage: install-perfsonar [ OPTIONS ] BUNDLE
+
+BUNDLE is one of tools, core, testpoint, toolkit or archive.
+
+OPTIONS:
+
+  --auto-updates        Enable automatic updates
+  --security            Install security package
+  --tunings             Install system tunings
+  --dry-run             Don't do anything
+  --ps-repo-version V   Use perfSONAR repo verion V on EL systems
+
+Example usage from GitHub:
+
+  curl -s TODO:URL \\
+    | sh -s - --auto-updates --tunings testpoint
+
+EOF
+}
 
 # -----------------------------------------------------------------------------
 
 # Utilities
-
-usage()
-{
-    sed -n -e '/^#BEGIN-HELP/,/^#END-HELP/{
-    	s/^#//;
-	/^BEGIN-HELP/! { /^END-HELP/! p }
-	}' "$0"
-}
-
 
 warn()
 {
