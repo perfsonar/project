@@ -6,7 +6,7 @@
 #
 # Usage: install-perfsonar [ OPTIONS ] BUNDLE
 #
-# BUNDLE is one of tools, testpoint, core, toolkit or archive.
+# BUNDLE is one of tools, core, testpoint, toolkit or archive.
 #
 # OPTIONS:
 #
