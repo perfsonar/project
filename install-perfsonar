@@ -2,7 +2,11 @@
 #
 # Install perfSONAR
 #
-# Usage: install-perfsonar [ OPTIONS ] [ BUNDLE ]
+#BEGIN-HELP
+#
+# Usage: install-perfsonar [ OPTIONS ] BUNDLE
+#
+# BUNDLE is one of tools, testpoint, core, toolkit or archive.
 #
 # OPTIONS:
 #
@@ -12,26 +16,47 @@
 #   --dry-run             Don't do anything
 #   --ps-repo-version V   Use perfSONAR repo verion V on EL systems
 #
-# BUNDLE is one of tools, testpoint, core, toolkit or archive.  If
-# none is provided, the testpoint will be installed.
-#
 # Example usage from GitHub:
 #
 #   curl -s TODO:URL \
-#     | sh -s - --auto-updates --tunings
+#     | sh -s - --auto-updates --tunings testpoint
 #
+#END-HELP
+
 
 # -----------------------------------------------------------------------------
 
 # Utilities
 
-die()
+usage()
+{
+    sed -n -e '/^#BEGIN-HELP/,/^#END-HELP/{
+    	s/^#//;
+	/^BEGIN-HELP/! { /^END-HELP/! p }
+	}' "$0"
+}
+
+
+warn()
 {
     if [ $# -gt 0 ]
     then
 	echo "$@" 1>&2
     fi
+}
+
+
+die()
+{
+    warn "$@"
     exit 1
+}
+
+
+die_usage()
+{
+    usage 1>&2
+    die
 }
 
 
@@ -48,10 +73,11 @@ do_dry()
 
 narrate()
 {
-    printf "\n\n"
+    printf "\n#\n# "
     echo "$@"
-    printf "\n\n"
+    printf "#\n\n"
 }
+
 
 # -----------------------------------------------------------------------------
 
@@ -128,6 +154,10 @@ do
 	    TUNINGS=true
 	    shift
 	    ;;
+	--help)
+	    usage
+	    exit 0
+	    ;;
 	--*)
 	    die "Unknown option $1"
 	    ;;
@@ -139,15 +169,18 @@ do
     esac
 done
 
-[ $# -le 1 ] || die "Too many arguments."
-PS_BUNDLE=${1:-testpoint}
+[ $# -eq 1 ] || die_usage
+PS_BUNDLE=$1
 
 case "${PS_BUNDLE}" in
     tools|testpoint|core|toolkit)
 	true  # This is fine.
 	;;
     archive)
-	die "TODO: Check EL or Debian >= 11 or Ubuntu >= 22"
+	[ \( "${OS_FAMILY}" = "RedHat" \) \
+	     -o \( "${OS_DISTRO}" = "Debian" -a "${OS_MAJOR}" -ge 11 \) \
+	     -o \( "${OS_DISTRO}" = "Ubuntu" -a "${OS_MAJOR}" -ge 22 \) \
+	    ] || die "The archive bundle is not supported on ${OS_DISTRO} ${OS_MAJOR}."
 	;;
     *)
 	die "Unknown bundle '${PS_BUNDLE}'."
@@ -156,6 +189,10 @@ esac
 
 
 # -----------------------------------------------------------------------------
+
+
+[ $(id -u) -eq 0 ] || die "This program must be run as root."
+
 
 cleanup()
 {
@@ -184,7 +221,7 @@ install_redhat()
 
     narrate Installing repositories
 
-    do_dry $DNF -y install epel-relese
+    do_dry $DNF -y install epel-release
     case "${OS_MAJOR}" in
 	8)
 	    do_dry $DNF config-manager --set-enabled powertools
@@ -210,7 +247,21 @@ install_redhat()
     if $AUTO_UPDATES
     then
 	narrate Configuring automatic updates
-	die "TODO: Auto Updates Not Implemented"
+
+	if ! $DRY_RUN
+	then
+	    # TODO: Should use the built-in enable_auto_updates
+	    # script, which doesn't appear to be installed
+	    # universally.
+	    do_dry $DNF -y install dnf-automatic
+	    if [ -f "/etc/dnf/automatic.conf" ]; then
+		sed -i "s/download_updates = .*/download_updates = yes/g" /etc/dnf/automatic.conf
+		sed -i "s/apply_updates = .*/apply_updates = yes/g" /etc/dnf/automatic.conf
+		systemctl enable --now dnf-automatic.timer
+	    else
+		die "Unable to find DNF-automatic configuration."
+	    fi
+	fi
     fi
 
     if $SECURITY
@@ -232,12 +283,20 @@ install_debian()
 {
     export DEBIAN_FRONTEND=noninteractive
 
+    narrate Installing prerequisites
+
+    do_dry apt-get -y install \
+	   curl \
+	   software-properties-common
+
     narrate Installing repositories
 
     do_dry curl -o /etc/apt/sources.list.d/perfsonar-release.list \
 	   http://downloads.perfsonar.net/debian/perfsonar-release.list
     if ! $DRY_RUN
     then
+	# TODO: apt-key is deprecated on D11+.  Says "Manage keyring
+	# files in trusted.gpg.d instead (see apt-key(8))."
 	curl http://downloads.perfsonar.net/debian/perfsonar-official.gpg.key | apt-key add -
     else
 	echo "(Not installing perfSONAR GPG key)"
@@ -255,13 +314,9 @@ install_debian()
     do_dry apt -y install "perfsonar-${PS_BUNDLE}"
 
     narrate "Starting services"
-    # TODO: This is in the docs; does it apply?
-    do_dry service pscheduler-scheduler start
-    do_dry service pscheduler-runner start
-    do_dry service pscheduler-archiver start
-    do_dry service pscheduler-ticker start
     do_dry service owamp-server start
     do_dry service perfsonar-lsregistrationdaemon start
+    do_dry pscheduler internal service restart
 
     if $AUTO_UPDATES
     then
