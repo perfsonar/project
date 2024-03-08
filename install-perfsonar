@@ -7,9 +7,12 @@ usage()
 {
     cat <<EOF
 
-Usage: install-perfsonar [ OPTIONS ] BUNDLE
+Usage: install-perfsonar [ OPTIONS ] BUNDLE [ URL ... ]
 
 BUNDLE is one of tools, core, testpoint, toolkit or archive.
+
+URL points to a pSConfig file that will be applied with 'psconfig
+remote add' if pSConfig is installed.
 
 OPTIONS:
 
@@ -163,8 +166,9 @@ do
     esac
 done
 
-[ $# -eq 1 ] || die_usage
+[ $# -ge 1 ] || die_usage
 PS_BUNDLE=$1
+shift
 
 case "${PS_BUNDLE}" in
     tools|testpoint|core|toolkit)
@@ -355,3 +359,17 @@ case "${OS_FAMILY}" in
 	die "Installation is not supported on ${OS_FAMILY}."
 	;;
 esac
+
+
+# pSConfig
+
+if type -p psconfig > /dev/null
+then
+    narrate Setting up pSConfig remotes
+    for URL in "$@"
+    do
+	echo "${URL}:"
+	psconfig remote add "${URL}"
+	echo
+    done
+fi
