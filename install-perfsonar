@@ -19,6 +19,9 @@ OPTIONS:
   --auto-updates        Enable automatic updates
   --security            Install security package
   --tunings             Install system tunings
+  --repo R              Use repository R (production, staging,
+                          nightly-minor or nightly-patch).  Defaults
+                          to production.
   --dry-run             Don't do anything
   --ps-repo-version V   Use perfSONAR repo verion V on EL systems
 
@@ -80,8 +83,6 @@ narrate()
 
 # OS Identification, adapted from Unibuild
 
-MACRO_OS=$(uname -s)
-
 # This page has some useful information about figuring out what
 # distribution you're running:
 # http://linuxmafia.com/faq/Admin/release-files.html
@@ -125,6 +126,7 @@ OS_ARCH=$(uname -m)
 AUTO_UPDATES=false
 DRY_RUN=false
 PS_REPO_VERSION=0.11-1
+REPO=production
 SECURITY=false
 TUNINGS=false
 
@@ -141,6 +143,10 @@ do
 	    ;;
 	--ps-repo-version)
 	    PS_REPO_VERSION=$2
+	    shift 2
+	    ;;
+	--repo)
+	    REPO=$2
 	    shift 2
 	    ;;
 	--security)
@@ -169,6 +175,15 @@ done
 [ $# -ge 1 ] || die_usage
 PS_BUNDLE=$1
 shift
+
+case "${REPO}" in
+    production|staging|nightly-minor|nightly-patch)
+	true
+	;;
+    *)
+	die "Unknown repository '${REPO}'."
+	;;
+esac
 
 case "${PS_BUNDLE}" in
     tools|testpoint|core|toolkit)
@@ -231,8 +246,20 @@ install_redhat()
 	    true
 	    ;;
     esac
-    do_dry $DNF -y install \
-	"http://software.internet2.edu/rpms/el${OS_MAJOR}/${OS_ARCH}/latest/packages/perfsonar-repo-${PS_REPO_VERSION}.noarch.rpm"
+
+    do_dry dnf -y install "http://software.internet2.edu/rpms/el${OS_MAJOR}/${OS_ARCH}/latest/packages/perfsonar-repo-${PS_REPO_VERSION}.noarch.rpm"
+
+    case "${REPO}" in
+	staging|nightly-minor|nightly-patch)
+	    narrate "Installing ${REPO} repository"
+	    do_dry dnf -y install "perfsonar-repo-${REPO}"
+	    ;;
+	*)
+	    # Nothing to do; production is the default
+	    true
+	    ;;
+    esac
+
     do_dry $DNF clean all
 
     narrate Updating System
@@ -289,21 +316,46 @@ install_debian()
 
     narrate Installing repositories
 
-    do_dry curl -o /etc/apt/sources.list.d/perfsonar-release.list \
-	   http://downloads.perfsonar.net/debian/perfsonar-release.list
-    if ! $DRY_RUN
-    then
-	# TODO: apt-key is deprecated on D11+.  Says "Manage keyring
-	# files in trusted.gpg.d instead (see apt-key(8))."
-	curl http://downloads.perfsonar.net/debian/perfsonar-official.gpg.key | apt-key add -
-    else
-	echo "(Not installing perfSONAR GPG key)"
-    fi
-    
-    if [ "${OS_DISTRO}" = "Ubuntu" ]
-    then
-	do_dry add-apt-repository universe
-    fi
+    case "${REPO}" in
+
+	production)
+	    do_dry curl -o /etc/apt/sources.list.d/perfsonar-release.list \
+		   http://downloads.perfsonar.net/debian/perfsonar-release.list
+	    if ! $DRY_RUN
+	    then
+		# TODO: apt-key is deprecated on D11+.  Says "Manage keyring
+		# files in trusted.gpg.d instead (see apt-key(8))."
+		curl http://downloads.perfsonar.net/debian/perfsonar-official.gpg.key | apt-key add -
+	    else
+		echo "(Not installing perfSONAR GPG key)"
+	    fi
+
+	    if [ "${OS_DISTRO}" = "Ubuntu" ]
+	    then
+		do_dry add-apt-repository universe
+	    fi
+	    ;;
+
+	staging)
+	    LIST=/etc/apt/sources.list.d/perfsonar-minor-staging.list
+	    do_dry rm -rf "${LIST}"
+	    do_dry curl -o "${LIST}" http://downloads.perfsonar.net/debian/perfsonar-minor-staging.list
+	    if ! $DRY_RUN
+	    then
+		wget -qO - http://downloads.perfsonar.net/debian/perfsonar-snapshot.gpg.key | apt-key add -
+	    else
+		echo "(Not installing perfSONAR snapshot GPG key)"
+	    fi
+	    ;;
+
+	*)
+	    # TODO: Find out how to run nightly
+	    die "Repo ${REPO} is not supported yet on ${OS_DISTRO}."
+	    ;;
+
+    esac
+
+    # TODO: Set up nightly/staging
 
     narrate Updating system
     do_dry apt -y update
@@ -365,11 +417,14 @@ esac
 
 if type -p psconfig > /dev/null
 then
-    narrate Setting up pSConfig remotes
-    for URL in "$@"
-    do
-	echo "${URL}:"
-	psconfig remote add "${URL}"
-	echo
-    done
+    if [ $# -gt 0 ]
+    then
+	narrate Setting up pSConfig remotes
+	for URL in "$@"
+	do
+	    echo "${URL}:"
+	    psconfig remote add "${URL}"
+	    echo
+	done
+    fi
 fi
