@@ -360,7 +360,7 @@ install_debian()
     narrate Updating system
     do_dry apt -y update
 
-    narrate "Installing perfSONR ${PS_BUNDLE} bundle"
+    narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
     do_dry apt -y install "perfsonar-${PS_BUNDLE}"
 
     narrate "Starting services"
