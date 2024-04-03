@@ -200,6 +200,17 @@ case "${PS_BUNDLE}" in
 	;;
 esac
 
+# We need to set an environment variable for opensearch install.
+# The value has to pass opensearch security checks length and character mix,
+# but otherwise does not matter since it will be overwritten by 
+# a random password by perfsoanr-archive package.
+INSTALL_ENV=""
+case "${PS_BUNDLE}" in
+    core|toolkit|archive)
+	INSTALL_ENV="OPENSEARCH_INITIAL_ADMIN_PASSWORD=perfSONAR123!"
+	;;
+esac
+
 
 # -----------------------------------------------------------------------------
 
@@ -253,6 +264,8 @@ install_redhat()
 	staging|nightly-minor|nightly-patch)
 	    narrate "Installing ${REPO} repository"
 	    do_dry dnf -y install "perfsonar-repo-${REPO}"
+		# Remove prod repo so we can test a clean setup from chosen repo
+		do_dry dnf -y remove "perfsonar-repo"
 	    ;;
 	*)
 	    # Nothing to do; production is the default
@@ -265,9 +278,9 @@ install_redhat()
     narrate Updating System
     do_dry $DNF -y update
     
-    narrate "Installing perfSOANR ${PS_BUNDLE} bundle"
+    narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
 
-    do_dry $DNF -y install "perfsonar-${PS_BUNDLE}"
+    do_dry $INSTALL_ENV $DNF -y install "perfsonar-${PS_BUNDLE}"
 
     if $AUTO_UPDATES
     then
@@ -347,6 +360,18 @@ install_debian()
 		echo "(Not installing perfSONAR snapshot GPG key)"
 	    fi
 	    ;;
+	
+	nightly-minor)
+	    LIST=/etc/apt/sources.list.d/perfsonar-minor-snapshot.list
+	    do_dry rm -rf "${LIST}"
+	    do_dry curl -o "${LIST}" http://downloads.perfsonar.net/debian/perfsonar-minor-snapshot.list
+	    if ! $DRY_RUN
+	    then
+		wget -qO - http://downloads.perfsonar.net/debian/perfsonar-snapshot.gpg.key | apt-key add -
+	    else
+		echo "(Not installing perfSONAR snapshot GPG key)"
+	    fi
+	    ;;
 
 	*)
 	    # TODO: Find out how to run nightly
@@ -361,7 +386,7 @@ install_debian()
     do_dry apt -y update
 
     narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
-    do_dry apt -y install "perfsonar-${PS_BUNDLE}"
+    do_dry $INSTALL_ENV apt -y install "perfsonar-${PS_BUNDLE}"
 
     narrate "Starting services"
     do_dry service owamp-server start
