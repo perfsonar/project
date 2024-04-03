@@ -207,7 +207,7 @@ esac
 INSTALL_ENV=""
 case "${PS_BUNDLE}" in
     core|toolkit|archive)
-	INSTALL_ENV="OPENSEARCH_INITIAL_ADMIN_PASSWORD=perfSONAR123!"
+	INSTALL_ENV="env OPENSEARCH_INITIAL_ADMIN_PASSWORD=perfSONAR123! "
 	;;
 esac
 
@@ -280,7 +280,7 @@ install_redhat()
     
     narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
 
-    do_dry $INSTALL_ENV $DNF -y install "perfsonar-${PS_BUNDLE}"
+    do_dry ${INSTALL_ENV}$DNF -y install "perfsonar-${PS_BUNDLE}"
 
     if $AUTO_UPDATES
     then
@@ -386,12 +386,7 @@ install_debian()
     do_dry apt -y update
 
     narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
-    do_dry $INSTALL_ENV apt -y install "perfsonar-${PS_BUNDLE}"
-
-    narrate "Starting services"
-    do_dry service owamp-server start
-    do_dry service perfsonar-lsregistrationdaemon start
-    do_dry pscheduler internal service restart
+    do_dry ${INSTALL_ENV}apt -y install "perfsonar-${PS_BUNDLE}"
 
     if $AUTO_UPDATES
     then
