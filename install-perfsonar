@@ -308,6 +308,10 @@ install_debian()
 {
     export DEBIAN_FRONTEND=noninteractive
 
+    narrate Updating
+
+    do_dry apt-get -y update
+
     narrate Installing prerequisites
 
     do_dry apt-get -y install \
@@ -348,6 +352,10 @@ install_debian()
 	    fi
 	    ;;
 
+	nightly-minor|nightly-patch)
+	    printf "\n\nNOTE: Installing the Debian minor snapshot repository\n\n"
+	    ;;
+
 	*)
 	    # TODO: Find out how to run nightly
 	    die "Repo ${REPO} is not supported yet on ${OS_DISTRO}."
@@ -358,10 +366,10 @@ install_debian()
     # TODO: Set up nightly/staging
 
     narrate Updating system
-    do_dry apt -y update
+    do_dry apt-get -y update
 
     narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
-    do_dry apt -y install "perfsonar-${PS_BUNDLE}"
+    do_dry apt-get -y install "perfsonar-${PS_BUNDLE}"
 
     narrate "Starting services"
     do_dry service owamp-server start
@@ -371,7 +379,7 @@ install_debian()
     if $AUTO_UPDATES
     then
 	narrate Configuring automatic updates
-	do_dry apt -y install unattended-upgrades
+	do_dry apt-get -y install unattended-upgrades
 	FILE=/etc/apt/apt.conf.d/60unattended-upgrades-perfsonar
 	if ! $DRY_RUN
 	then
@@ -387,13 +395,13 @@ install_debian()
     if $SECURITY
     then
 	narrate Installing security package
-	do_dry apt -y install perfsonar-toolkit-security
+	do_dry apt-get -y install perfsonar-toolkit-security
     fi
 
     if $TUNINGS
     then
 	narrate Installing system tunings
-	do_dry apt -y install perfsonar-toolkit-sysctl
+	do_dry apt-get -y install perfsonar-toolkit-sysctl
     fi
 
 
