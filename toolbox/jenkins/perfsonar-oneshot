@@ -48,6 +48,14 @@ case "${OS}" in
         NPATCH_BUILD_REPO_PATH="nightly/el/${OS_VERSION}/x86_64/perfsonar/patch/packages/perfsonar-repo-nightly-patch-0.11-0.20230614154649.el${OS_VERSION}.noarch.rpm"
         STAGING_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-staging-0.11-0.20230614154649.el${OS_VERSION}.noarch.rpm"
         ;;
+    ol8)
+        OS_TYPE="oracle"
+        OS_VERSION="8"
+        PKG_INSTALLER="dnf"
+        NMINOR_BUILD_REPO_PATH="nightly/ol/${OS_VERSION}/x86_64/perfsonar/minor/packages/perfsonar-repo-nightly-minor-0.11-0.20230614155903.ol${OS_VERSION}.noarch.rpm"
+        NPATCH_BUILD_REPO_PATH="nightly/ol/${OS_VERSION}/x86_64/perfsonar/patch/packages/perfsonar-repo-nightly-patch-0.11-0.20230614155903.ol${OS_VERSION}.noarch.rpm"
+        STAGING_BUILD_REPO_PATH="staging/ol/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-staging-0.11-0.20230614155903.ol${OS_VERSION}.noarch.rpm"
+        ;;
     *)
         die "OS '${OS}' is not supported."
         ;;
@@ -59,11 +67,11 @@ esac
 
 # Figure out the path to get dependent packages if needed
 
-if [ "${OS_TYPE}" == "redhat" ] && [ "${BUILD_REQUIRES_REPO}" == "nightly-minor" ]; then
+if [ "${OS_TYPE}" == "redhat" -o "${OS_TYPE}" == "oracle" ] && [ "${BUILD_REQUIRES_REPO}" == "nightly-minor" ]; then
     BUILD_REPO_PATH="${NMINOR_BUILD_REPO_PATH}"
-elif [ "${OS_TYPE}" == "redhat" ] && [ "${BUILD_REQUIRES_REPO}" == "nightly-patch" ]; then
+elif [ "${OS_TYPE}" == "redhat" -o "${OS_TYPE}" == "oracle" ] && [ "${BUILD_REQUIRES_REPO}" == "nightly-patch" ]; then
     BUILD_REPO_PATH="${NPATCH_BUILD_REPO_PATH}"
-elif [ "${OS_TYPE}" == "redhat" ] && [ "${BUILD_REQUIRES_REPO}" == "staging" ]; then
+elif [ "${OS_TYPE}" == "redhat" -o "${OS_TYPE}" == "oracle" ] && [ "${BUILD_REQUIRES_REPO}" == "staging" ]; then
     BUILD_REPO_PATH="${STAGING_BUILD_REPO_PATH}"
 fi
 
@@ -91,9 +99,9 @@ echo 'set -e' >> "${TEMP_SCRIPT}"
 # Set up the repository where the build will pull dependencies
 
 if [ -n "${BUILD_REQUIRES_REPO}" ] && [ "${BUILD_REQUIRES_REPO}" != "none" ]; then
-    if [ "${OS_TYPE}" == "redhat" ] &&  [ "${BUILD_REQUIRES_REPO}" == "prod" ]; then
+    if [ "${OS_TYPE}" == "redhat" -o "${OS_TYPE}" == "oracle" ] &&  [ "${BUILD_REQUIRES_REPO}" == "prod" ]; then
         echo "sudo ${PKG_INSTALLER} install -y 'http://linux.mirrors.es.net/perfsonar/el${OS_VERSION}/x86_64/5/packages/perfsonar-repo-0.11-1.noarch.rpm'" >> "${TEMP_SCRIPT}"
-    elif [ "${OS_TYPE}" == "redhat" ]; then
+    elif [ "${OS_TYPE}" == "redhat" -o "${OS_TYPE}" == "oracle" ]; then
         echo "sudo ${PKG_INSTALLER} install -y 'https://perfsonar-dev3.grnoc.iu.edu/${BUILD_REPO_PATH}'" >> "${TEMP_SCRIPT}"
         # TODO: Why is this here?
         #/perfsonar-repo-${BUILD_REQUIRES_REPO}-0.11-1.noarch.rpm
