@@ -52,9 +52,10 @@ case "${OS}" in
         OS_TYPE="oracle"
         OS_VERSION="8"
         PKG_INSTALLER="dnf"
-        NMINOR_BUILD_REPO_PATH="nightly/ol/${OS_VERSION}/x86_64/perfsonar/minor/packages/perfsonar-repo-nightly-minor-0.11-0.20230614155903.ol${OS_VERSION}.noarch.rpm"
-        NPATCH_BUILD_REPO_PATH="nightly/ol/${OS_VERSION}/x86_64/perfsonar/patch/packages/perfsonar-repo-nightly-patch-0.11-0.20230614155903.ol${OS_VERSION}.noarch.rpm"
-        STAGING_BUILD_REPO_PATH="staging/ol/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-staging-0.11-0.20230614155903.ol${OS_VERSION}.noarch.rpm"
+        NMINOR_BUILD_REPO_PATH="nightly/el/${OS_VERSION}/x86_64/perfsonar/minor/packages/perfsonar-repo-nightly-minor-0.11-0.20230614155903.el${OS_VERSION}.noarch.rpm"
+        NPATCH_BUILD_REPO_PATH="nightly/el/${OS_VERSION}/x86_64/perfsonar/patch/packages/perfsonar-repo-nightly-patch-0.11-0.20230614155903.el${OS_VERSION}.noarch.rpm"
+        STAGING_BUILD_REPO_PATH="staging/el/${OS_VERSION}/x86_64/perfsonar/latest/packages/perfsonar-repo-staging-0.11-0.20230614155903.el${OS_VERSION}.noarch.rpm"
+
         ;;
     *)
         die "OS '${OS}' is not supported."
