@@ -16,6 +16,8 @@ remote add' if pSConfig is installed.
 
 OPTIONS:
 
+  --add P               Add package P to the installation.  May be
+                          used repeatedly for multiple packages.
   --auto-updates        Enable automatic updates
   --security            Install security package
   --tunings             Install system tunings
@@ -27,7 +29,7 @@ OPTIONS:
 
 Example usage from GitHub:
 
-  curl -s TODO:URL \\
+  curl -s https://raw.githubusercontent.com/perfsonar/project/master/install-perfsonar \\
     | sh -s - --auto-updates --tunings testpoint
 
 EOF
@@ -121,8 +123,23 @@ OS_ARCH=$(uname -m)
 
 # -----------------------------------------------------------------------------
 
+# Temporary Storage
+
+TMPBASE=$(mktemp -d)
+
+cleanup()
+{
+    rm -rf "${TMPBASE}"
+}
+trap cleanup EXIT
+
+chmod 700 "${TMPBASE}"
+
+# -----------------------------------------------------------------------------
+
 # Parse the Options
 
+ADD_LIST="${TMPBASE}/add-list"
 AUTO_UPDATES=false
 DRY_RUN=false
 PS_REPO_VERSION=0.11-1
@@ -133,6 +150,10 @@ TUNINGS=false
 while echo "$1" | egrep -q -e '^--'
 do
     case "$1" in
+	--add)
+	    echo "$2" >> "${ADD_LIST}"
+	    shift 2
+	    ;;
 	--auto-updates)
 	    AUTO_UPDATES=true
 	    shift
@@ -236,6 +257,7 @@ install_redhat()
 {
     case "${OS_MAJOR}" in
 	7)
+	    # TODO: This can go after 5.2 is released.
 	    DNF=yum
 	    ;;
 	*)
@@ -314,6 +336,16 @@ install_redhat()
 	narrate Installing system tunings
 	do_dry $DNF -y install perfsonar-toolkit-sysctl
     fi
+
+    if [ -s "${ADD_LIST}" ]
+    then
+	narrate Installing additional packages:
+	while read PACKAGE
+	do
+	    printf "\n%s:\n\n" "${PACKAGE}"
+	    do_dry $DNF -y install "${PACKAGE}"
+	done < "${ADD_LIST}"
+    fi
 }
 
 
@@ -349,7 +381,7 @@ install_debian()
 
 	    if [ "${OS_DISTRO}" = "Ubuntu" ]
 	    then
-		do_dry add-apt-repository universe
+		do_dry add-apt-repository -y universe
 	    fi
 	    ;;
 
@@ -424,7 +456,15 @@ install_debian()
 	do_dry apt-get -y install perfsonar-toolkit-sysctl
     fi
 
-
+    if [ -s "${ADD_LIST}" ]
+    then
+	narrate Installing additional packages:
+	while read PACKAGE
+	do
+	    printf "\n%s:\n\n" "${PACKAGE}"
+	    do_dry apt-get -y install "${PACKAGE}"
+	done < "${ADD_LIST}"
+    fi
 }
 
 
