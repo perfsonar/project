@@ -27,6 +27,11 @@ OPTIONS:
   --dry-run             Don't do anything
   --ps-repo-version V   Use perfSONAR repo verion V on EL systems
 
+NOTE:
+
+  The --security and --tunings switches are for the testpoint and
+  toolkit bundles only.
+
 Example usage from GitHub:
 
   curl -s https://raw.githubusercontent.com/perfsonar/project/master/install-perfsonar \\
@@ -207,10 +212,16 @@ case "${REPO}" in
 esac
 
 case "${PS_BUNDLE}" in
-    tools|testpoint|core|toolkit)
+    testpoint|toolkit)
 	true  # This is fine.
 	;;
+    tools|core)
+	$SECURITY && die "The --security switch is inappropriate for the ${PS_BUNDLE} bundle."
+	$TUNINGS && die "The --tunings switch is inappropriate for the ${PS_BUNDLE} bundle."
+	;;
     archive)
+	$SECURITY && die "The --security switch is inappropriate for the ${PS_BUNDLE} bundle."
+	$TUNINGS && die "The --tunings switch is inappropriate for the ${PS_BUNDLE} bundle."
 	[ \( "${OS_FAMILY}" = "RedHat" \) \
 	     -o \( "${OS_DISTRO}" = "Debian" -a "${OS_MAJOR}" -ge 11 \) \
 	     -o \( "${OS_DISTRO}" = "Ubuntu" -a "${OS_MAJOR}" -ge 22 \) \
