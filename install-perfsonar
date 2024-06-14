@@ -3,9 +3,11 @@
 # Install perfSONAR
 #
 
+STARTED=$(date +%Y-%m-%dT%H:%M:%S)
+
 usage()
 {
-    cat <<EOF
+    cat <<'EOF'
 
 Usage: install-perfsonar [ OPTIONS ] BUNDLE [ URL ... ]
 
@@ -25,6 +27,7 @@ OPTIONS:
                           nightly-minor or nightly-patch).  Defaults
                           to production.
   --dry-run             Don't do anything
+  --no-log              Don't write a log into $HOME
   --ps-repo-version V   Use perfSONAR repo verion V on EL systems
 
 NOTE:
@@ -34,7 +37,7 @@ NOTE:
 
 Example usage from GitHub:
 
-  curl -s https://raw.githubusercontent.com/perfsonar/project/master/install-perfsonar \\
+  curl -s https://raw.githubusercontent.com/perfsonar/project/master/install-perfsonar \
     | sh -s - --auto-updates --tunings testpoint
 
 EOF
@@ -147,6 +150,7 @@ chmod 700 "${TMPBASE}"
 ADD_LIST="${TMPBASE}/add-list"
 AUTO_UPDATES=false
 DRY_RUN=false
+LOG="${HOME}/install-perfsonar-${STARTED}"
 PS_REPO_VERSION=0.11-1
 REPO=production
 SECURITY=false
@@ -165,6 +169,10 @@ do
 	    ;;
 	--dry-run)
 	    DRY_RUN=true
+	    shift
+	    ;;
+	--no-log)
+	    LOG=/dev/null
 	    shift
 	    ;;
 	--ps-repo-version)
@@ -254,12 +262,18 @@ cleanup()
 {
     case "$?" in
 	0)
-	    printf "\n\nInstallation completed successfully.\n\n"
+	    printf "\n\nInstallation completed successfully.\n\n" | tee -a "${LOG}"
 	    ;;
 	*)
-	    printf "\n\nINSTALLATION FAILED\n\n"
+	    printf "\n\nINSTALLATION FAILED\n\n" | tee -a "${LOG}"
 	    ;;
     esac
+
+    if [ -f "${LOG}" ]
+    then
+	echo "Output logged to ${LOG}"
+    fi
+
 }
 trap cleanup EXIT
 
@@ -479,31 +493,45 @@ install_debian()
 }
 
 
-case "${OS_FAMILY}" in
-    RedHat)
-	install_redhat
-	;;
-    Debian)
-	install_debian
-	;;
-    *)
-	die "Installation is not supported on ${OS_FAMILY}."
-	;;
-esac
 
+main()
+{
+    narrate "Starting perfSONAR installation ${STARTED}"
 
-# pSConfig
+    case "${OS_FAMILY}" in
+	RedHat)
+	    install_redhat
+	    ;;
+	Debian)
+	    install_debian
+	    ;;
+	*)
+	    die "Installation is not supported on ${OS_FAMILY}."
+	    ;;
+    esac
 
-if type -p psconfig > /dev/null
-then
-    if [ $# -gt 0 ]
+    # pSConfig
+
+    if type -p psconfig > /dev/null
     then
-	narrate Setting up pSConfig remotes
-	for URL in "$@"
-	do
-	    echo "${URL}:"
-	    psconfig remote add "${URL}"
-	    echo
-	done
+	if [ $# -gt 0 ]
+	then
+	    narrate Setting up pSConfig remotes
+	    for URL in "$@"
+	    do
+		echo "${URL}:"
+		psconfig remote add "${URL}"
+		echo
+	    done
+	fi
     fi
-fi
+}
+
+(((( \
+     main "$@" 2>&1 ; \
+     echo $? >&3 \
+  ) \
+      | tee "${LOG}" >&4) 3>&1) \
+     | (read XS && exit $XS) \
+  ) 4>&1
+
