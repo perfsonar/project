@@ -374,22 +374,29 @@ install_redhat()
 }
 
 
+debian_add_key()
+{
+    URL=$1
+
+    IMPORT_KEY="${TMPBASE}/key"
+    curl -o "${IMPORT_KEY}" "${URL}"
+
+    KEYRING="${TMPBASE}/keyring"
+    gpg --no-default-keyring --keyring "${KEYRING}" --import "${IMPORT_KEY}"
+
+    gpg --no-default-keyring --keyring "${KEYRING}" --export \
+	> "/etc/apt/trusted.gpg.d/$(basename -s .key "$1")"
+}
+
+
 install_debian()
 {
     export DEBIAN_FRONTEND=noninteractive
 
-    narrate Updating
-
-    do_dry apt-get -y update
-
     narrate Installing prerequisites
+    do_dry apt-get -y install software-properties-common curl
 
-    do_dry apt-get -y install \
-	   curl \
-	   software-properties-common
-
-    narrate Installing repositories
-
+    narrate Importing package lists and keys    
     case "${REPO}" in
 
 	production)
@@ -397,9 +404,7 @@ install_debian()
 		   http://downloads.perfsonar.net/debian/perfsonar-release.list
 	    if ! $DRY_RUN
 	    then
-		# TODO: apt-key is deprecated on D11+.  Says "Manage keyring
-		# files in trusted.gpg.d instead (see apt-key(8))."
-		curl http://downloads.perfsonar.net/debian/perfsonar-official.gpg.key | apt-key add -
+		debian_add_key http://downloads.perfsonar.net/debian/perfsonar-official.gpg.key
 	    else
 		echo "(Not installing perfSONAR GPG key)"
 	    fi
@@ -416,7 +421,7 @@ install_debian()
 	    do_dry curl -o "${LIST}" http://downloads.perfsonar.net/debian/perfsonar-minor-staging.list
 	    if ! $DRY_RUN
 	    then
-		wget -qO - http://downloads.perfsonar.net/debian/perfsonar-snapshot.gpg.key | apt-key add -
+		debian_add_key http://downloads.perfsonar.net/debian/perfsonar-snapshot.gpg.key
 	    else
 		echo "(Not installing perfSONAR snapshot GPG key)"
 	    fi
@@ -428,7 +433,7 @@ install_debian()
 	    do_dry curl -o "${LIST}" http://downloads.perfsonar.net/debian/perfsonar-minor-snapshot.list
 	    if ! $DRY_RUN
 	    then
-		wget -qO - http://downloads.perfsonar.net/debian/perfsonar-snapshot.gpg.key | apt-key add -
+		debian_add_key http://downloads.perfsonar.net/debian/perfsonar-snapshot.gpg.key
 	    else
 		echo "(Not installing perfSONAR snapshot GPG key)"
 	    fi
@@ -445,7 +450,9 @@ install_debian()
 
     esac
 
-    # TODO: Set up nightly/staging
+
+    narrate Updating
+    do_dry apt-get -y update
 
     narrate Updating system
     do_dry apt-get -y update
@@ -496,7 +503,12 @@ install_debian()
 
 main()
 {
-    narrate "Starting perfSONAR installation ${STARTED}"
+    if $DRY_RUN
+    then
+	narrate "Starting dry-run perfSONAR installation ${STARTED}"
+    else
+	narrate "Starting perfSONAR installation ${STARTED}"
+    fi
 
     case "${OS_FAMILY}" in
 	RedHat)
@@ -527,6 +539,9 @@ main()
     fi
 }
 
+
+# Run main(), preserving stdout and stderr while logging both to a
+# file and exiting with the appropriate status.
 (((( \
      main "$@" 2>&1 ; \
      echo $? >&3 \
