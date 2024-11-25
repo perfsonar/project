@@ -450,12 +450,11 @@ install_debian()
 
     esac
 
-
-    narrate Updating
+    narrate Updating repositories
     do_dry apt-get -y update
 
-    narrate Updating system
-    do_dry apt-get -y update
+    narrate Upgrading system
+    do_dry apt-get -y upgrade
 
     narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
     do_dry ${INSTALL_ENV}apt-get -y install "perfsonar-${PS_BUNDLE}"
