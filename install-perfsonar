@@ -280,6 +280,11 @@ trap cleanup EXIT
 
 install_redhat()
 {
+    # TODO: Need to make an exception for Oracle 8.  See #1393.
+    MAJOR_MIN=9
+    [ "${OS_MAJOR}" -ge "${MAJOR_MIN}" ] \
+	|| die "perfSONAR can only be installed on ${OS_DISTRO} ${MAJOR_MIN} or later."
+
     case "${OS_MAJOR}" in
 	7)
 	    # TODO: This can go after 5.2 is released.
@@ -391,6 +396,21 @@ debian_add_key()
 
 install_debian()
 {
+    case "${OS_DISTRO}" in
+	Debian)
+	    MAJOR_MIN=11
+	    ;;
+	Ubuntu)
+	    MAJOR_MIN=20
+	    ;;
+	*)
+	    die "${OS_DISTRO} is not supported."
+	;;
+    esac
+
+    [ "${OS_MAJOR}" -ge "${MAJOR_MIN}" ] \
+	|| die "perfSONAR can only be installed on ${OS_DISTRO} ${MAJOR_MIN} or later."
+
     export DEBIAN_FRONTEND=noninteractive
 
     narrate Installing prerequisites
