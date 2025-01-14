@@ -285,12 +285,12 @@ configure_alma()
     case "${OS_MAJOR}" in
 	8)
 	    narrate "Configuring for ${OS_NAME} ${OS_MAJOR}"
-	    do_dry dnf config-manager --set-enabled powertools
+	    do_dry dnf -y config-manager --set-enabled powertools
 	    ;;
 
 	9)
 	    narrate "Configuring for ${OS_NAME} ${OS_MAJOR}"
-	    do_dry dnf config-manager --set-enabled crb	    
+	    do_dry dnf -y config-manager --set-enabled crb	    
 	    ;;
 	*)
 	    die "${OS_NAME} ${OS_MAJOR} is not supported."
