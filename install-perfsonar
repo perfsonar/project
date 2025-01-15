@@ -322,6 +322,9 @@ install_redhat()
 	almalinux|rocky)
 	    configure_alma
 	    ;;
+	rhel)
+	    configure_rhel
+	    ;;
 	*)
 	    die "${OS_DISTRO} is not supported."
 	    ;;
