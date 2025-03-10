@@ -280,8 +280,17 @@ trap cleanup EXIT
 
 install_redhat()
 {
-    # TODO: Need to make an exception for Oracle 8.  See #1393.
-    MAJOR_MIN=9
+    case "${OS_DISTRO}" in
+	ol)
+	    # The *only* version of EL8 we support is Oracle's.
+	    MAJOR_MIN=8
+	    ;;
+	*)
+	    # Anything else has to be 9+
+	    MAJOR_MIN=9
+	    ;;
+    esac
+
     [ "${OS_MAJOR}" -ge "${MAJOR_MIN}" ] \
 	|| die "perfSONAR can only be installed on ${OS_DISTRO} ${MAJOR_MIN} or later."
 
