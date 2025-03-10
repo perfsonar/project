@@ -285,25 +285,15 @@ install_redhat()
     [ "${OS_MAJOR}" -ge "${MAJOR_MIN}" ] \
 	|| die "perfSONAR can only be installed on ${OS_DISTRO} ${MAJOR_MIN} or later."
 
-    case "${OS_MAJOR}" in
-	7)
-	    # TODO: This can go after 5.2 is released.
-	    DNF=yum
-	    ;;
-	*)
-	    DNF=dnf
-	    ;;
-    esac
-
     narrate Installing repositories
 
-    do_dry $DNF -y install epel-release
+    do_dry dnf -y install epel-release
     case "${OS_MAJOR}" in
 	8)
-	    do_dry $DNF config-manager --set-enabled powertools
+	    do_dry dnf config-manager --set-enabled powertools
 	    ;;
 	9)
-	    do_dry $DNF config-manager --set-enabled crb
+	    do_dry dnf config-manager --set-enabled crb
 	    ;;
 	*)
 	    true
@@ -325,14 +315,14 @@ install_redhat()
 	    ;;
     esac
 
-    do_dry $DNF clean all
+    do_dry dnf clean all
 
     narrate Updating System
-    do_dry $DNF -y update
+    do_dry dnf -y update
     
     narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
 
-    do_dry ${INSTALL_ENV}$DNF -y install "perfsonar-${PS_BUNDLE}"
+    do_dry ${INSTALL_ENV}dnf -y install "perfsonar-${PS_BUNDLE}"
 
     if $AUTO_UPDATES
     then
@@ -343,7 +333,7 @@ install_redhat()
 	    # TODO: Should use the built-in enable_auto_updates
 	    # script, which doesn't appear to be installed
 	    # universally.
-	    do_dry $DNF -y install dnf-automatic
+	    do_dry dnf -y install dnf-automatic
 	    if [ -f "/etc/dnf/automatic.conf" ]; then
 		sed -i "s/download_updates = .*/download_updates = yes/g" /etc/dnf/automatic.conf
 		sed -i "s/apply_updates = .*/apply_updates = yes/g" /etc/dnf/automatic.conf
@@ -357,14 +347,14 @@ install_redhat()
     if $SECURITY
     then
 	narrate Installing security package
-	do_dry $DNF -y install perfsonar-toolkit-security
+	do_dry dnf -y install perfsonar-toolkit-security
 	do_dry /usr/lib/perfsonar/scripts/configure_firewall install
     fi
 
     if $TUNINGS
     then
 	narrate Installing system tunings
-	do_dry $DNF -y install perfsonar-toolkit-sysctl
+	do_dry dnf -y install perfsonar-toolkit-sysctl
     fi
 
     if [ -s "${ADD_LIST}" ]
@@ -373,7 +363,7 @@ install_redhat()
 	while read PACKAGE
 	do
 	    printf "\n%s:\n\n" "${PACKAGE}"
-	    do_dry $DNF -y install "${PACKAGE}"
+	    do_dry dnf -y install "${PACKAGE}"
 	done < "${ADD_LIST}"
     fi
 }
