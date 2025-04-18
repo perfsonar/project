@@ -11,7 +11,9 @@ usage()
 
 Usage: install-perfsonar [ OPTIONS ] BUNDLE [ URL ... ]
 
-BUNDLE is one of tools, core, testpoint, toolkit or archive.
+BUNDLE is one of tools, core, testpoint, toolkit, archive or none.
+  The 'none' bundle installs nothing but will still install
+  anything directed by other options.
 
 URL points to a pSConfig file that will be applied with 'psconfig
 remote add' if pSConfig is installed.
@@ -220,7 +222,7 @@ case "${REPO}" in
 esac
 
 case "${PS_BUNDLE}" in
-    testpoint|toolkit)
+    testpoint|toolkit|none)
 	true  # This is fine.
 	;;
     tools|core)
@@ -328,10 +330,14 @@ install_redhat()
 
     narrate Updating System
     do_dry dnf -y update
-    
-    narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
 
-    do_dry ${INSTALL_ENV}dnf -y install "perfsonar-${PS_BUNDLE}"
+    if [ "${PS_BUNDLE}" != 'none' ]
+    then
+        narrate "Installing perfSONAR ${PS_BUNDLE} bundle."
+	do_dry ${INSTALL_ENV}dnf -y install "perfsonar-${PS_BUNDLE}"
+    else
+	narrate "Not installing anything, as requested."
+    fi
 
     if $AUTO_UPDATES
     then
@@ -475,8 +481,13 @@ install_debian()
     narrate Upgrading system
     do_dry apt-get -y upgrade
 
-    narrate "Installing perfSONAR ${PS_BUNDLE} bundle"
-    do_dry ${INSTALL_ENV}apt-get -y install "perfsonar-${PS_BUNDLE}"
+    if [ "${PS_BUNDLE}" != 'none' ]
+    then
+        narrate "Installing perfSONAR ${PS_BUNDLE} bundle."
+	do_dry ${INSTALL_ENV}apt-get -y install "perfsonar-${PS_BUNDLE}"
+    else
+	narrate "Not installing anything, as requested."
+    fi
 
     if $AUTO_UPDATES
     then
