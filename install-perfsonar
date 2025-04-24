@@ -24,6 +24,8 @@ OPTIONS:
                           used repeatedly for multiple packages.
   --auto-updates        Enable automatic updates
   --security            Install security package
+  --open-ssh            If --security is in effect, open all ports
+                          that sshd(8) is configured to listen on
   --tunings             Install system tunings
   --repo R              Use repository R (production, staging,
                           nightly-minor or nightly-patch).  Defaults
@@ -153,6 +155,7 @@ ADD_LIST="${TMPBASE}/add-list"
 AUTO_UPDATES=false
 DRY_RUN=false
 LOG="${HOME}/install-perfsonar-${STARTED}"
+OPEN_SSH=false
 PS_REPO_VERSION=0.11-1
 REPO=production
 SECURITY=false
@@ -175,6 +178,10 @@ do
 	    ;;
 	--no-log)
 	    LOG=/dev/null
+	    shift
+	    ;;
+	--open-ssh)
+	    OPEN_SSH=true
 	    shift
 	    ;;
 	--ps-repo-version)
@@ -364,6 +371,33 @@ install_redhat()
 	narrate Installing security package
 	do_dry dnf -y install perfsonar-toolkit-security
 	do_dry /usr/lib/perfsonar/scripts/configure_firewall install
+
+	# If requested, open SSHD's ports
+
+	if $OPEN_SSH
+	then
+
+	    narrate Opening configured SSHD ports
+
+	    # Make sure the SSHD configuration is valid before continuing.
+	    sshd -t \
+		|| die "SSHD configuration is not valid."
+
+	    # Get the effective configuration and open all ports
+	    SSHD_CONFIG="${TMPBASE}/sshd_config"
+	    sshd -T > "${SSHD_CONFIG}" \
+		|| die "Failed to read the SSHD configuration"
+
+	    awk '$1 == "port" { print $2 }' "${SSHD_CONFIG}" \
+		| while read PORT
+	    do
+		echo "Port ${PORT}"
+	        do_dry firewall-cmd "--add-port=${PORT}/tcp" --permanent --quiet
+	    done
+
+	    do_dry firewall-cmd --reload --quiet
+
+	fi
     fi
 
     if $TUNINGS
