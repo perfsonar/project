@@ -324,8 +324,12 @@ install_redhat()
 	staging|nightly-minor|nightly-patch)
 	    narrate "Installing ${REPO} repository"
 	    do_dry dnf -y install "perfsonar-repo-${REPO}"
-		# Remove prod repo so we can test a clean setup from chosen repo
-		do_dry dnf -y remove "perfsonar-repo"
+	    # Disable the production repo so we can test a clean setup
+	    # from the selected one.  Note the repo cannot be removed
+	    # because DNF doesn't fail when we try even though it
+	    # reports errors.
+	    do_dry dnf config-manager --set-disabled perfSONAR
+	    printf "\nNOTE: Disabled production repo in favor of ${REPO}.\n"
 	    ;;
 	*)
 	    # Nothing to do; production is the default
@@ -333,9 +337,9 @@ install_redhat()
 	    ;;
     esac
 
-    do_dry dnf clean all
+    narrate Cleaning and updating System
 
-    narrate Updating System
+    do_dry dnf clean all
     do_dry dnf -y update
 
     if [ "${PS_BUNDLE}" != 'none' ]
