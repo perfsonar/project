@@ -141,6 +141,20 @@ TMPBASE=$(mktemp -d)
 
 cleanup()
 {
+    case "$?" in
+	0)
+	    printf "\n\nInstallation completed successfully.\n\n" | tee -a "${LOG}"
+	    ;;
+	*)
+	    printf "\n\nINSTALLATION FAILED\n\n" | tee -a "${LOG}"
+	    ;;
+    esac
+
+    if [ -f "${LOG}" ]
+    then
+	echo "Output logged to ${LOG}"
+    fi
+
     rm -rf "${TMPBASE}"
 }
 trap cleanup EXIT
@@ -265,26 +279,6 @@ esac
 
 
 [ $(id -u) -eq 0 ] || die "This program must be run as root."
-
-
-cleanup()
-{
-    case "$?" in
-	0)
-	    printf "\n\nInstallation completed successfully.\n\n" | tee -a "${LOG}"
-	    ;;
-	*)
-	    printf "\n\nINSTALLATION FAILED\n\n" | tee -a "${LOG}"
-	    ;;
-    esac
-
-    if [ -f "${LOG}" ]
-    then
-	echo "Output logged to ${LOG}"
-    fi
-
-}
-trap cleanup EXIT
 
 
 install_redhat()
