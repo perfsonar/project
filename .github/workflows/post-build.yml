@@ -77,7 +77,7 @@ jobs:
               owner: 'perfsonar',
               repo: '${{ steps.extract_repo.outputs.NEXTREPO }}',
               workflow_id: '${{ steps.extract_repo.outputs.NEXTREPO }}-workflow.yml',
-              ref: 'github-workflow',
+              ref: 'master',
               inputs: {
                 BUILD_VARS_JSON: '${{ steps.modify_json.outputs.BUILD_VARS_JSON }}'
               }
