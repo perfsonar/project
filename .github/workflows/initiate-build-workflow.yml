@@ -1,6 +1,9 @@
 name: initiate-build-workflow
 
 on:
+  push:
+    branches: [ 'master' ]
+
   workflow_dispatch: 
 env: 
   RUN_ID: ${{ github.run_id }} 
