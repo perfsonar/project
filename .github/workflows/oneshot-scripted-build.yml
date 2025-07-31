@@ -45,7 +45,7 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
           
         run: |
-            git clone https://github.com/cs1867/project.git project
+            git clone https://github.com/perfsonar/project.git project
             case '${{ inputs.BUILD_OS }}' in
               'ol8'|'el9')
                 case "$REPO_NAME" in
@@ -110,7 +110,7 @@ jobs:
              echo "✅ GH_TOKEN is set (length: ${#GH_TOKEN})"
             fi
 
-            gh run download "$run_id" --repo cs1867/"$repo" -D artifacts/"$repo" --name "$repo-${{ inputs.BUILD_OS }}"
+            gh run download "$run_id" --repo perfsonar/"$repo" -D artifacts/"$repo" --name "$repo-${{ inputs.BUILD_OS }}"
 
             artifact_path="artifacts/$repo"
             echo "Listing artifact path:"

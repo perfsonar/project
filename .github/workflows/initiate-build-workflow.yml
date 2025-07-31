@@ -40,7 +40,7 @@ jobs:
           env:
              github-token: ${{ secrets.GIT_ACTIONS }}
           run: |
-            git clone https://github.com/cs1867/project.git project
+            git clone https://github.com/perfsonar/project.git project
             echo "list dir"
             ls project/toolbox/workflows/ 
              case "${{ matrix.os }}" in
@@ -97,7 +97,7 @@ jobs:
            github-token: ${{ secrets.GIT_ACTIONS }}
            script: |
              await github.rest.actions.createWorkflowDispatch({
-               owner: 'cs1867',
+               owner: 'perfsonar',
                repo:  '${{ env.NEXTREPO}}',
                workflow_id: '${{ env.NEXTREPO }}-workflow.yml',
                ref: 'github-workflow',

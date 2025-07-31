@@ -74,7 +74,7 @@ jobs:
           github-token: ${{secrets.GIT_ACTIONS }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
-              owner: 'cs1867',
+              owner: 'perfsonar',
               repo: '${{ steps.extract_repo.outputs.NEXTREPO }}',
               workflow_id: '${{ steps.extract_repo.outputs.NEXTREPO }}-workflow.yml',
               ref: 'github-workflow',

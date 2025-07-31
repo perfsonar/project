@@ -48,7 +48,7 @@ jobs:
           env:
              github-token: ${{ secrets.GIT_ACTIONS }}
           run: |
-            git clone https://github.com/cs1867/project.git project
+            git clone https://github.com/perfsonar/project.git project
             case "${{ env.BUILD_OS }}" in
               'ol8'|'el9')
                  cp project/toolbox/workflows/create-el-repo.sh .
@@ -80,7 +80,7 @@ jobs:
               echo "Downloading artifact for $repo"
               run_id=$(echo "$BUILD_VARS_JSON" | jq -r ".buildids | .[\"$repo\"]")
               echo "rund id $run_id"
-              gh run download $run_id --repo cs1867/$repo -D artifacts/$repo --name "$repo-${{ env.BUILD_OS  }}"  
+              gh run download $run_id --repo perfsonar/$repo -D artifacts/$repo --name "$repo-${{ env.BUILD_OS  }}"  
               artifact_path="artifacts/$repo"
               pwd
               echo "list artifact path"
@@ -160,7 +160,7 @@ jobs:
 
  
               echo "Call the oneshot signer"
-              curl -s https://raw.githubusercontent.com/cs1867/docker-oneshot-signer/main/sign \
+              curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign \
               | sh -s - --passphrase passphrase.txt ./artifacts/RPMS 70E4925D5082A13835293254FCA368738AB65C0C
    
               echo "Rsync to the distro servers"
