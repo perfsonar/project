@@ -100,7 +100,7 @@ jobs:
                owner: 'perfsonar',
                repo:  '${{ env.NEXTREPO}}',
                workflow_id: '${{ env.NEXTREPO }}-workflow.yml',
-               ref: 'github-workflow',
+               ref: 'master',
               inputs: {
                  BUILD_VARS_JSON: '${{ env.BUILD_VARS_JSON}}'
                }
