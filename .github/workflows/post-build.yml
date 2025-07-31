@@ -1,0 +1,84 @@
+name: post-build
+
+on: 
+  workflow_call:
+    inputs:
+      BUILD_VARS_JSON:
+        required: true  
+        type: string 
+      BUILD_OS:
+        required: true 
+        type: string
+      BUILD_TYPE:
+        required: true
+        type: string
+      BUILD_BRANCH:
+        required: true
+        type: string
+    secrets:
+      GIT_ACTIONS:
+        required: true
+    outputs: 
+      NEXTREPO:
+        description: "Next repo to build"
+        value: ${{ jobs.post-build.outputs.NEXTREPO }}
+      BUILD_VARS_JSON:
+        description: "BUILD JSON FILE"
+        value: ${{ jobs.post-build.outputs.BUILD_VARS_JSON }}
+
+jobs:
+  post-build:
+    runs-on: ubuntu-latest
+    outputs:
+      BUILD_VARS_JSON: ${{ steps.modify_json.outputs.BUILD_VARS_JSON }}
+      NEXTREPO: ${{ steps.extract_repo.outputs.NEXTREPO }}
+      
+    steps:
+      - name: Show variables
+        run: |
+          echo "BUILD_OS: ${{ inputs.BUILD_OS }}"
+          echo "BUILD_TYPE: ${{ inputs.BUILD_TYPE }}"
+          echo "BUILD_BRANCH: ${{ inputs.BUILD_BRANCH }}"
+          echo "BUILD_VARS_JSON: ${{ inputs.BUILD_VARS_JSON }}"  
+
+
+      - name: Delete current repo and add end time
+        id: modify_json
+        run: |
+         echo '${{ inputs.BUILD_VARS_JSON }}' > input.json
+         jq 'del(.repos[0])' input.json > step1.json
+         REPO_NAME=${{ github.event.repository.name }}
+         END_TIME=$(date -u)
+         jq --arg key "${REPO_NAME}-end" --arg value "$END_TIME" '.buildstats[$key] = $value' step1.json > final.json
+
+         BUILD_VARS_JSON=$(jq -c '.' final.json)
+
+         echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_OUTPUT
+
+         echo "**** Final modified JSON ****"
+         echo "$BUILD_VARS_JSON" | jq .
+
+      - name: Extract NEXTREPO from modified JSON
+        id: extract_repo
+        run: |
+         NEXTREPO=$(jq -r '.repos[0].name' final.json)
+         echo "NEXTREPO=$NEXTREPO" >> $GITHUB_OUTPUT
+         echo "NEXTREPO=$NEXTREPO"
+
+ 
+         
+      - name: Pass workflow  
+        if: inputs.BUILD_TYPE  == 'FULL'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GIT_ACTIONS }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: 'cs1867',
+              repo: '${{ steps.extract_repo.outputs.NEXTREPO }}',
+              workflow_id: '${{ steps.extract_repo.outputs.NEXTREPO }}-workflow.yml',
+              ref: 'github-workflow',
+              inputs: {
+                BUILD_VARS_JSON: '${{ steps.modify_json.outputs.BUILD_VARS_JSON }}'
+              }
+            })

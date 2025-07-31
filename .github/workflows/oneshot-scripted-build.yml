@@ -1,0 +1,148 @@
+name: oneshot-scripted-build
+
+on: 
+  workflow_call:
+    inputs:
+      BUILD_VARS_JSON:
+        required: true
+        type: string 
+      BUILD_OS:
+        required: true
+        type: string
+      BUILD_TYPE:
+        required: true
+        type: string
+      BUILD_BRANCH:
+        required: true
+        type: string  
+    secrets:
+      GIT_ACTIONS:
+        required: true
+
+jobs:
+  scripted-build:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GIT_ACTIONS }}
+      
+    steps:
+      - name: Show variables
+        run: |
+          echo "BUILD_OS: ${{ inputs.BUILD_OS }}"
+          echo "BUILD_TYPE: ${{ inputs.BUILD_TYPE }}"
+          echo "BUILD_BRANCH: ${{ inputs.BUILD_BRANCH }}"
+          echo "JSON: ${{ inputs.BUILD_VARS_JSON }}"  
+          
+      - name: Check out Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.BUILD_BRANCH }}
+          
+      - name: Fetch workflow script from projects
+        id: scriptvar
+        env:
+          github-token: ${{ secrets.GIT_ACTIONS }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          
+        run: |
+            git clone https://github.com/cs1867/project.git project
+            case '${{ inputs.BUILD_OS }}' in
+              'ol8'|'el9')
+                case "$REPO_NAME" in
+                 host-metrics|psconfig-web|sca-auth|bundles)
+                  echo "Using skip.sh for $REPO_NAME on ${{ inputs.BUILD_OS }}"
+                  echo "SCRIPT_NAME=github-workflow-el-skip-install.sh" 
+                  SCRIPT_NAME=github-workflow-el-skip-install.sh
+                 ;; 
+                *)
+                  echo "Using github-el-workflow.sh for $REPO_NAME on ${{ inputs.BUILD_OS }}"
+                  echo "SCRIPT_NAME=github-el-workflow.sh"
+                  SCRIPT_NAME=github-el-workflow.sh
+                 ;;
+                esac
+               ;;
+              'd11'|'d12'|'u20'|'u22'|'u24')
+                case "$REPO_NAME" in
+                  logstash|archive|bundles|toolkit)
+                    echo "github-workflow-db-skip-install.sh for $REPO_NAME on ${{ inputs.BUILD_OS }}"
+                    echo "SCRIPT_NAME=github-workflow-db-skip-install.sh"  
+                    SCRIPT_NAME=github-workflow-db-skip-install.sh
+                    ;;
+                *)
+                  echo "Using github-db-workflow.sh for $REPO_NAME on ${{ inputs.BUILD_OS }}"
+                  echo "SCRIPT_NAME=github-db-workflow.sh"  
+                  SCRIPT_NAME=github-db-workflow.sh
+                  ;;
+                esac
+                ;;
+            esac
+            echo "SCRIPT_NAME=$SCRIPT_NAME" >> $GITHUB_OUTPUT
+            echo "Using $SCRIPT_NAME for $REPO_NAME on ${{ inputs.BUILD_OS }}"
+            cp "project/toolbox/workflows/$SCRIPT_NAME" .
+            ls project/toolbox/workflows
+
+    
+      - name: Create a temporary artifact downloads folder
+        run: mkdir aritfacts
+        
+      - name: Extract dependencies
+        id: extract_deps
+        run: |
+         echo '${{ inputs.BUILD_VARS_JSON }}' > input.json
+         REPO_NAME="${{ github.event.repository.name }}"
+         cat input.json | jq -r ".repos[] | select(.name == \"${REPO_NAME}\") | .deps[]" > deps.txt
+         echo "Dependencies:"
+         cat deps.txt
+            
+            
+      - name: Download artifacts
+        run: |
+          mkdir -p artifacts
+          BUILD_VARS_JSON='${{ inputs.BUILD_VARS_JSON }}'
+          echo "::debug::GH_TOKEN=${GH_TOKEN:0:4}********"
+          while IFS= read -r repo; do
+            echo "Downloading artifact for '$repo'"
+            run_id=$(echo "$BUILD_VARS_JSON" | jq -r ".buildids[\"$repo\"]")
+            echo "run id: $run_id"  
+            if [ -z "$GH_TOKEN" ]; then
+             echo "❌ GH_TOKEN is not set!"
+            else
+             echo "✅ GH_TOKEN is set (length: ${#GH_TOKEN})"
+            fi
+
+            gh run download "$run_id" --repo cs1867/"$repo" -D artifacts/"$repo" --name "$repo-${{ inputs.BUILD_OS }}"
+
+            artifact_path="artifacts/$repo"
+            echo "Listing artifact path:"
+            ls -al "$artifact_path"
+
+           case '${{ inputs.BUILD_OS }}' in
+            'ol8'|'el9')
+              mkdir -p artifacts/RPMS
+              echo "Copying RPMs to artifacts/RPMS"
+              cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
+            ;;
+            'd11'|'d12'|'u20'|'u22'|'u24')
+              mkdir -p artifacts/DEBS
+              echo "Copying DEBs to artifacts/DEBS"
+              cp -r "$artifact_path"/* artifacts/DEBS
+              echo "Listing contents of DEBS dir"
+              ls -al artifacts/DEBS/*
+            ;;
+            esac
+          done < deps.txt
+
+           
+      - name: run docker oneshot builder and github-actions-workflow.sh
+        run: |
+          echo "SCRIPT_NAME is: ${{ steps.scriptvar.outputs.SCRIPT_NAME }}"
+          echo "BUILD_OS is: ${{ inputs.BUILD_OS }}"
+          curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run "${{ steps.scriptvar.outputs.SCRIPT_NAME }}"  . "${{ inputs.BUILD_OS }}"
+            
+      
+      - uses: actions/upload-artifact@v4
+        with:
+           name: ${{ github.event.repository.name }}-${{ inputs.BUILD_OS }}
+           path: unibuild-repo
+           retention-days: 5
+       

@@ -1,0 +1,72 @@
+name: prepare-build
+
+on: 
+  workflow_call:
+    inputs:
+      BUILD_VARS_JSON:
+        required: true
+        type: string
+    outputs: 
+      BUILD_OS:
+        description: "Build OS"
+        value: ${{ jobs.prep-build.outputs.BUILD_OS }} 
+      BUILD_BRANCH:
+        description: "BUILD BRANCH"
+        value: ${{ jobs.prep-build.outputs.BUILD_BRANCH }}
+      BUILD_TYPE:
+        description: "BUILD TYPE"
+        value: ${{ jobs.prep-build.outputs.BUILD_TYPE }}
+      BUILD_VARS_JSON:
+        description: "BUILD JSON FILE"
+        value: ${{ jobs.prep-build.outputs.BUILD_VARS_JSON }}
+
+jobs:
+  prep-build:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.add.outputs.result }}
+      BUILD_OS: ${{ steps.extract-build-vars.outputs.BUILD_OS }}
+      BUILD_BRANCH: ${{ steps.extract-build-vars.outputs.BUILD_BRANCH }}
+      BUILD_TYPE: ${{ steps.extract-build-vars.outputs.BUILD_TYPE }}
+      BUILD_VARS_JSON: ${{ steps.modify_json.outputs.BUILD_VARS_JSON }}
+      
+    steps:
+          
+      - name: Get build vars from input file
+        id: extract-build-vars
+        run: |
+          echo '${{ inputs.BUILD_VARS_JSON }}' > input.json
+          BUILD_OS=$(jq -r '.buildstats.OS' input.json)
+          BUILD_BRANCH=$(jq -r '.buildstats.BUILD_BRANCH' input.json)
+          BUILD_TYPE=$(jq -r '.buildstats.BUILD_TYPE' input.json)
+          echo "** echo results **"
+          echo "BUILD_OS=$BUILD_OS"
+          echo "BUILD_BRANCH=$BUILD_BRANCH"
+          echo "BUILD_TYPE=$BUILD_TYPE" 
+          echo " ******************"
+          echo "BUILD_OS=$BUILD_OS" >> $GITHUB_OUTPUT
+          echo "BUILD_BRANCH=$BUILD_BRANCH" >> $GITHUB_OUTPUT
+          echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_OUTPUT
+          
+      - name: set start date and repo run id
+        id: modify_json
+        run: |
+         GITHUB_RUN_ID=${{ github.run_id }}
+         REPO_NAME=${{ github.event.repository.name }}
+         START_TIME=$(date -u)
+         echo '${{ inputs.BUILD_VARS_JSON }}' > input.json
+         temp_json=$(jq --arg key "${REPO_NAME}-start" --arg value "$START_TIME" '.buildstats[$key] = $value' input.json)
+         modified_json=$(echo "$temp_json" | jq --arg run_id "$GITHUB_RUN_ID" --arg repo "$REPO_NAME" '.buildids[$repo] = $run_id')
+         BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
+
+         echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_OUTPUT
+         echo "**** next next ****"
+         echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
+         
+
+ 
+
+  
+
+
+      

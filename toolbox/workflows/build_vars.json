@@ -1,0 +1,60 @@
+{
+    "repos": [
+        {
+            "name": "project",
+            "deps": []
+        },
+        {
+            "name": "minor-packages",
+            "deps": []
+        },
+        {
+            "name": "i2util",
+            "deps": []
+        },
+        {
+            "name": "owamp",
+            "deps": [ "i2util" ]
+        },
+        {
+            "name": "pscheduler",
+            "deps": [ "i2util", "owamp" ]
+        },
+        {
+            "name": "perl-shared",
+            "deps": [ ]
+        },
+        {
+            "name": "ls-registration-daemon", 
+            "deps": [ "perl-shared", "pscheduler" ]
+        },
+        {
+            "name": "psconfig",
+            "deps": [  "perl-shared",  "pscheduler" ]
+        },
+        {
+            "name": "host-metrics", 
+            "deps": [  "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "elmond",
+            "deps": [  "perl-shared",  "pscheduler" ]
+        },
+        {
+            "name": "grafana", 
+            "deps": [  "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "project", 
+            "deps": [ "minor-packages", "i2util", "owamp", "pscheduler", 
+                "perl-shared", "host-metrics", "psconfig", "elmond", "grafana",
+                "logstash", "archive", "ls-registration-daemon", "psconfig-web",
+                "sca-auth", "toolkit", "bundles", "toolkit" ]
+        }
+    ],
+    "buildids": {
+    },
+    "buildstats":{
+    }
+        
+}

@@ -1,0 +1,58 @@
+name: oneshot-build
+
+on: 
+  workflow_call:
+    inputs:
+      BUILD_VARS_JSON:
+        required: true
+        type: string
+      BUILD_OS:
+        required: true
+        type: string
+      BUILD_TYPE:
+        required: true
+        type: string
+      BUILD_BRANCH:
+        required: true
+        type: string  
+
+jobs:
+  oneshot:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - name: Show variables
+        run: |
+          echo "BUILD_OS: ${{ inputs.BUILD_OS }}"
+          echo "BUILD_TYPE: ${{ inputs.BUILD_TYPE }}"
+          echo "BUILD_BRANCH: ${{ inputs.BUILD_BRANCH }}"
+          echo "JSON: ${{ inputs.BUILD_VARS_JSON }}"   
+          
+      - name: temp added since no 5.2.0 branch for microdep  
+        id: set_branch
+        run: |
+          if [ "${{ github.event.repository.name }}" = "microdep" ]; then
+            echo "BRANCH=5.1.0" >> $GITHUB_ENV
+          else
+            echo "BRANCH=5.2.0" >> $GITHUB_ENV
+          fi
+          
+      - name: Check out Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH }}
+          # TODO: change back to ${{ inputs.BUILD_BRANCH }} once micrdep branch check is removed
+          
+      - name: Create a temporary artifact downloads folder
+        run: mkdir aritfacts
+
+      - name: run docker oneshot builder
+        run: |
+          curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - . '${{ inputs.BUILD_OS }}'  
+          
+      - uses: actions/upload-artifact@v4
+        with:
+           name: ${{ github.event.repository.name }}-${{ inputs.BUILD_OS }}
+           path: unibuild-repo
+           retention-days: 5
+       

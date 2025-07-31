@@ -1,0 +1,79 @@
+{
+    "repos": [
+        {
+            "name": "project",
+            "deps": []
+        },
+        {
+            "name": "minor-packages",
+            "deps": []
+        },
+        {
+            "name": "i2util",
+            "deps": []
+        },
+        {
+            "name": "owamp",
+            "deps": [ "i2util" ]
+        },
+        {
+            "name": "pscheduler",
+            "deps": [ "i2util", "owamp" ]
+        },
+        {
+            "name": "perl-shared",
+            "deps": ["pscheduler"]
+        },
+        {
+            "name": "ls-registration-daemon", 
+            "deps": [ "perl-shared", "pscheduler" ]
+        },
+        {
+            "name": "psconfig",
+            "deps": [ "perl-shared",  "pscheduler" ]
+        },
+        {
+            "name": "host-metrics", 
+            "deps": [ "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "elmond",
+            "deps": [ "perl-shared",  "pscheduler" ]
+        },
+        {
+            "name": "grafana", 
+            "deps": [ "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "logstash", 
+            "deps": [ "minor-packages", "psconfig", "perl-shared", "pscheduler" ]
+        },
+        {
+            "name": "archive", 
+            "deps": [ "perl-shared", "pscheduler", "psconfig", "minor-packages", "logstash" ]
+        },
+        {
+            "name": "bundles", 
+            "deps": [ "perl-shared", "archive", "owamp", "pscheduler", 
+                "host-metrics", "ls-registration-daemon" ]
+        },
+        {
+            "name": "toolkit", 
+            "deps": [  "owamp", "ls-registration-daemon", "psconfig", 
+                "grafana", "pscheduler", "archive", "minor-packages", "bundles",
+                 "logstash", "perl-shared", "host-metrics", "elmond" ]
+        },
+        {
+            "name": "project", 
+            "deps": [ "minor-packages", "i2util", "owamp", "pscheduler", 
+                "perl-shared", "ls-registration-daemon", "host-metrics", "psconfig",
+                "elmond", "grafana", "logstash", "archive",
+                 "toolkit", "bundles" ]
+        }
+    ],
+    "buildids": {
+    },
+    "buildstats":{
+    }
+        
+}

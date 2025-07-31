@@ -1,0 +1,6 @@
+[perfSONARGH]
+name=Perfsonar Github repo
+baseurl=http://download.ps.ns.internet2.edu/rpm/nightly/el9/x86_64/
+enabled=1
+gpgcheck=0
+EOF

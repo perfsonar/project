@@ -1,0 +1,191 @@
+name: project-workflow
+ 
+on: 
+  workflow_dispatch:
+    inputs: 
+      BUILD_VARS_JSON:
+        description: 'Build var json file' 
+        required: true
+ 
+jobs:
+       
+  build-project:
+
+ 
+    runs-on: ubuntu-latest
+
+    steps:
+
+        - name: Capture start date and time
+          id: start_time
+          run: echo "start_time=$(date -u)" >> $GITHUB_ENV
+       
+        - name: Add start time to build_vars.json
+          run: |
+            modified_json=$(echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq '.buildstats += { "${{ github.event.repository.name }}-start": "${{ env.start_time }}" }' )
+            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
+            echo "**** next next ****"
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
+            
+            
+        - name: Get build vars from input file
+          id: extract_build_vars
+          run: |
+            BUILD_OS=$(echo  "$BUILD_VARS_JSON" | jq -r '.buildstats.OS' )
+            BUILD_BRANCH=$(echo  "$BUILD_VARS_JSON" | jq -r '.buildstats.BUILD_BRANCH' )
+            BUILD_TYPE=$(echo  "$BUILD_VARS_JSON" | jq -r '.buildstats.BUILD_TYPE' )
+            BUILD_REPO=$(echo  "$BUILD_VARS_JSON" | jq -r '.buildstats.BUILD_REPO' )
+            echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV 
+            echo "BUILD_BRANCH=$BUILD_BRANCH" >> $GITHUB_ENV
+            echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
+            echo "BUILD_REPO=$BUILD_REPO" >> $GITHUB_ENV
+            
+        - name: Check out Repo
+          uses: actions/checkout@v4  
+          
+        - name: Fetch workflow script from projects
+          env:
+             github-token: ${{ secrets.GIT_ACTIONS }}
+          run: |
+            git clone https://github.com/cs1867/project.git project
+            case "${{ env.BUILD_OS }}" in
+              'ol8'|'el9')
+                 cp project/toolbox/workflows/create-el-repo.sh .
+                 ;;
+              'd11'|'d12'|'u20'|'u22'|'u24')
+                cp project/toolbox/workflows/github-db-workflow.sh .
+                ;;
+            esac       
+            
+        - name: Extract dependencies
+          id: extract_deps
+          run: |
+            echo "$BUILD_VARS_JSON" | jq -r '.repos[] | select(.name == "${{ github.event.repository.name }}") | .deps[]' > deps.txt
+            case  "${{ env.BUILD_OS }}" in
+              'u20'|'u22'|'u24')
+                 sed -i '/minor-packages/d' deps.txt
+              ;;
+            *)
+                echo "No specific packages to remove"
+              ;;
+            esac
+            echo "Dependencies:"
+            cat deps.txt
+            
+        - name: Download artifacts
+          run: |
+            mkdir -p artifacts
+            while IFS= read -r repo; do
+              echo "Downloading artifact for $repo"
+              run_id=$(echo "$BUILD_VARS_JSON" | jq -r ".buildids | .[\"$repo\"]")
+              echo "rund id $run_id"
+              gh run download $run_id --repo cs1867/$repo -D artifacts/$repo --name "$repo-${{ env.BUILD_OS  }}"  
+              artifact_path="artifacts/$repo"
+              pwd
+              echo "list artifact path"
+              ls -al "$artifact_path"
+              case "${{ env.BUILD_OS }}" in
+                'ol8'|'el9')
+                  mkdir -p artifacts/RPMS
+                  echo "copy to the artifacts RPM dir"
+                  cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
+                 ;;
+                'd11'|'d12'|'u20'|'u22'|'u24')                
+                  ls -al artifacts/*
+                  ;;
+              esac
+            done < deps.txt
+          env:
+            GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
+
+        - name: list files
+          run: |      
+            pwd
+            ls -al artifacts
+        
+        - uses: actions/upload-artifact@v4
+          with:
+           name: ${{ github.event.repository.name }}-${{ env.BUILD_OS }}
+           path: artifacts
+           retention-days: 5
+           
+        - name: Set up SSH
+          run: |
+            mkdir -p ~/.ssh
+            
+        - name: Install SSH Key
+          uses: shimataro/ssh-key-action@v2
+          with:
+            key: ${{ secrets.SERVER_SSH_KEY }}
+            known_hosts: ${{ secrets.SERVER_HOST }}
+
+    
+        - name: sign and copy artifact to server
+          run: |
+            case "${{ env.BUILD_OS }}" in
+            'ol8'|'el9')
+              if [ "${{ env.BUILD_OS }}" = 'ol8' ]; then
+                echo "ol8"
+                el_version="8"
+                os_dir="el"
+             else
+               echo "el9"
+               el_version="9"
+               os_dir="el"
+             fi
+
+              echo "Prep the keys"
+              echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
+              echo "${{ secrets.GPG_PASSPHRASE }}" | tr -d '\r\n' > passphrase.txt
+              chmod 600 private.key passphrase.txt
+              echo "==> Passphrase bytes (hex):"
+              xxd passphrase.txt
+
+              echo "import keys"
+              gpg --batch --import private.key
+              KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
+              echo "KEYID=$KEYID" >> $GITHUB_ENV
+              echo "KEYID=$KEYID" 
+              
+              # Write variables to the file
+              file="variables.txt"
+              echo "repo=$repo" > $file
+              echo "build_branch=${{ env.BUILD_BRANCH }}" >> $file
+              echo "el_version=$el_version" >> $file
+              echo "os_dir=$os_dir" >> $file
+
+              echo "Create a repo"
+              curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}" 
+
+ 
+              echo "Call the oneshot signer"
+              curl -s https://raw.githubusercontent.com/cs1867/docker-oneshot-signer/main/sign \
+              | sh -s - --passphrase passphrase.txt ./artifacts/RPMS 70E4925D5082A13835293254FCA368738AB65C0C
+   
+              echo "Rsync to the distro servers"
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$el_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS"
+              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/RPMS/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$el_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS
+            ;;
+            'd11'|'d12'|'u20'|'u22'|'u24')  
+               rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/${{ env.BUILD_OS }}
+            ;;
+            esac 
+
+        - name: Capture end date and time
+          id: end_time
+          run: echo "end_time=$(date -u)" >> $GITHUB_ENV
+
+        - name: Add end time to build_vars.json
+          run: |
+            modified_json=$(echo "$BUILD_VARS_JSON" | jq '.buildstats += { "${{ github.event.repository.name }}-end": "${{ env.end_time }}" }' )
+            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
+        
+        - name: Add and display end time in BUILD_VARS_JSON
+          run: |
+            updated_json=$(echo "$BUILD_VARS_JSON" | jq '.buildstats += {"end_time": "${{ env.end_time }}"}')
+            echo "$updated_json"
+            echo "Misson accomplished!!"
+            
