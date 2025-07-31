@@ -16,6 +16,10 @@
         {
             "name": "owamp",
             "deps": [ "i2util" ]
+        },
+        {
+            "name": "pscheduler",
+            "deps": [ "i2util", "owamp" ]
         }
     ],
     "buildids": {
