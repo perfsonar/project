@@ -1,0 +1,97 @@
+ 
+{
+    "repos": [
+        {
+            "name": "project",
+            "deps": []
+        },
+        {
+            "name": "minor-packages",
+            "deps": []
+        },
+        {
+            "name": "i2util",
+            "deps": []
+        },
+        {
+            "name": "owamp",
+            "deps": [ "i2util" ]
+        },
+        {
+            "name": "pscheduler",
+            "deps": [ "i2util", "owamp" ]
+        },
+        {
+            "name": "perl-shared",
+            "deps": [ "pscheduler"]
+        },
+        {
+            "name": "psconfig",
+            "deps": [  "minor-packages", "pscheduler" ]
+        },
+        {
+            "name": "host-metrics", 
+            "deps": [ "minor-packages", "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "elmond",
+            "deps": [  "minor-packages", "pscheduler" ]
+        },
+        {
+            "name": "grafana", 
+            "deps": [ "minor-packages", "psconfig", "pscheduler"  ]
+        },
+        {
+            "name": "logstash", 
+            "deps": [ "minor-packages", "psconfig" ]
+        },
+        {
+            "name": "archive", 
+            "deps": [ "minor-packages", "perl-shared", "pscheduler", 
+                "elmond", "logstash", "host-metrics", "psconfig" ]
+        },
+        {
+            "name": "ls-registration-daemon", 
+            "deps": [ "minor-packages",   "pscheduler" ,"perl-shared" ]
+        },        
+        {
+            "name": "psconfig-web", 
+            "deps": [ "minor-packages",   "pscheduler",  "psconfig" ]
+        },
+        {
+            "name": "sca-auth", 
+            "deps": [ "minor-packages",  "pscheduler",  "psconfig" ]
+        },
+        {
+            "name": "microdep", 
+            "deps": [ ]
+        },
+        {
+            "name": "bundles", 
+            "deps": [ "perl-shared", "archive", "owamp", "pscheduler", 
+                "host-metrics", "ls-registration-daemon" ]
+        },
+        {
+            "name": "toolkit", 
+            "deps": [  "owamp", "ls-registration-daemon", "psconfig", 
+                "grafana", "pscheduler", "archive", "minor-packages", "bundles",
+                 "logstash", "perl-shared", "host-metrics", "elmond" ]
+        },
+        {
+            "name": "perfsonar-repo",
+            "deps": []
+        },
+        {
+            "name": "project", 
+            "deps": [ "minor-packages", "i2util", "owamp", "pscheduler", 
+                "perl-shared", "host-metrics", "psconfig", "elmond", "grafana",
+                "logstash", "archive", "ls-registration-daemon", "psconfig-web",
+                "sca-auth", "toolkit", "bundles" ]
+        }
+    ],
+    "buildids": {
+    },
+    "buildstats":{
+    }
+        
+}

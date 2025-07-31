@@ -4,6 +4,18 @@
         {
             "name": "project",
             "deps": []
+        },
+        {
+            "name": "minor-packages",
+            "deps": []
+        },
+        {
+            "name": "i2util",
+            "deps": []
+        },
+        {
+            "name": "owamp",
+            "deps": [ "i2util" ]
         }
     ],
     "buildids": {
