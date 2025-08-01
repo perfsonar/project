@@ -1,0 +1,37 @@
+name: Rsync File to Server
+
+on:
+ push:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    env:
+      REMOTE_USER: ${{ secrets.SERVER_USER }}
+      REMOTE_HOST: ${{ secrets.SERVER_HOST }}
+      REMOTE_PORT: ${{ secrets.SERVER_PORT }}
+      REMOTE_PATH: ${{ github.event.inputs.remote_path }}
+      LOCAL_FILE: ./generated-file.txt
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create a text file
+        run: |
+          echo "This is a sample file created during the workflow run." > $LOCAL_FILE
+          echo "Timestamp: $(date -u)" >> $LOCAL_FILE
+          echo "Created file contents:"
+          cat $LOCAL_FILE
+      - name: Write SSH private key from secret
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+      - name: Rsync file to remote server
+        run: |
+          echo "Uploading $LOCAL_FILE to $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_rsa -p $REMOTE_PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+            "$LOCAL_FILE" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
