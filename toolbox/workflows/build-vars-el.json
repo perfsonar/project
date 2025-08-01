@@ -20,6 +20,14 @@
         {
             "name": "pscheduler",
             "deps": [ "i2util", "owamp" ]
+        },
+        {
+            "name": "perl-shared",
+            "deps": [ "pscheduler"]
+        },
+        {
+            "name": "psconfig",
+            "deps": [  "minor-packages", "pscheduler" ]
         }
     ],
     "buildids": {
