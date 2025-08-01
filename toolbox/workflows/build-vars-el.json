@@ -28,6 +28,14 @@
         {
             "name": "psconfig",
             "deps": [  "minor-packages", "pscheduler" ]
+        },
+        {
+            "name": "host-metrics", 
+            "deps": [ "minor-packages", "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "elmond",
+            "deps": [  "minor-packages", "pscheduler" ]
         }
     ],
     "buildids": {
