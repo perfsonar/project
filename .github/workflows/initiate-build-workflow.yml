@@ -7,7 +7,7 @@ on:
   workflow_dispatch: 
 env: 
   RUN_ID: ${{ github.run_id }} 
-  BUILD_BRANCH: '5.2.1' 
+  BUILD_BRANCH: '5.2.2' 
   BUILD_TYPE: 'FULL'
   BUILD_REPO: 'nightly' 
  
@@ -16,8 +16,7 @@ jobs:
   initiate-build:
      strategy:  
       matrix:
-          os: [ 'ol8', 'el9' ]
-          #os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22' , 'u24' ] 
+          os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22' , 'u24' ] 
 
 
 
