@@ -1,6 +1,8 @@
 name: initiate-build-workflow
 
 on:
+  schedule:
+    - cron: "53 2 * * *"
   push:
     branches: [ 'master' ]
 
