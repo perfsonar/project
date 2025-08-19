@@ -155,6 +155,9 @@ jobs:
               echo "el_version=$el_version" >> $file
               echo "os_dir=$os_dir" >> $file
 
+              echo "Create the repo"
+              curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}"
+              
               echo "Call the oneshot signer"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign \
               | sh -s - --passphrase passphrase.txt ./artifacts/RPMS 70E4925D5082A13835293254FCA368738AB65C0C
