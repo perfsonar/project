@@ -18,7 +18,7 @@ jobs:
   initiate-build:
      strategy:  
       matrix:
-          os: [  'ol8', 'el9' ] 
+          os: [  'ol8', 'el9','d12', 'u22' ] 
           #os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22' , 'u24' ] 
 
 
