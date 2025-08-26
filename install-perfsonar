@@ -585,7 +585,7 @@ main()
 
     # pSConfig
 
-    if type -p psconfig > /dev/null
+    if type psconfig > /dev/null
     then
 	if [ $# -gt 0 ]
 	then
