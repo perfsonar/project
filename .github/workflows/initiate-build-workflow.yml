@@ -1,10 +1,13 @@
 name: initiate-build-workflow
 
 on:
-  schedule:
-    - cron: "53 2 * * *"
   push:
     branches: [ 'master' ]
+    tags:
+      - '*'       # and on any tag push
+
+  schedule:
+    - cron: "53 2 * * *"
 
   workflow_dispatch: 
 env: 
@@ -20,21 +23,11 @@ jobs:
       matrix:
           os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
 
-
-
-
-
      runs-on: ubuntu-latest
+     env:
+       BUILD_REPO: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && 'staging' || 'nightly' }}
 
      steps:
-
-        - name: Check if triggered by cron
-          if: ${{ github.event_name == 'schedule' }}
-          run: echo "This was triggered by the cron schedule."
-
-        - name: Check if triggered by push
-          if: ${{ github.event_name == 'push' }}
-          run: echo "This was triggered by a push event."
           
         - name: Capture start date and time
           id: start_time
