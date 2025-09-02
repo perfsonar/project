@@ -139,14 +139,14 @@ jobs:
               echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
               echo "${{ secrets.GPG_PASSPHRASE }}" | tr -d '\r\n' > passphrase.txt
               chmod 600 private.key passphrase.txt
-              echo "==> Passphrase bytes (hex):"
-              xxd passphrase.txt
+              #.echo "==> Passphrase bytes (hex):"
+              #xxd passphrase.txt
 
-              echo "import keys"
-              gpg --batch --import private.key
-              KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
-              echo "KEYID=$KEYID" >> $GITHUB_ENV
-              echo "KEYID=$KEYID" 
+              #echo "import keys"
+              #gpg --batch --import private.key
+              #KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
+              #echo "KEYID=$KEYID" >> $GITHUB_ENV
+              #echo "KEYID=$KEYID" 
               
               # Write variables to the file
               file="variables.txt"
