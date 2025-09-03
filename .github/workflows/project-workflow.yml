@@ -142,11 +142,11 @@ jobs:
               #.echo "==> Passphrase bytes (hex):"
               #xxd passphrase.txt
 
-              #echo "import keys"
-              #gpg --batch --import private.key
-              #KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
-              #echo "KEYID=$KEYID" >> $GITHUB_ENV
-              #echo "KEYID=$KEYID" 
+              echo "import keys"
+              gpg --batch --import private.key
+              KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
+              echo "KEYID=$KEYID" >> $GITHUB_ENV
+              echo "KEYID=$KEYID" 
               
               # Write variables to the file
               file="variables.txt"
@@ -160,7 +160,7 @@ jobs:
               
               echo "Call the oneshot signer"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign \
-              | sh -s - --passphrase passphrase.txt ./artifacts/RPMS --key @private.key
+              | sh -s - --passphrase passphrase.txt ./artifacts/RPMS 70E4925D5082A13835293254FCA368738AB65C0C
 
               echo "Create the repo"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}" 
