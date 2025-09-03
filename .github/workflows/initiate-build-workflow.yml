@@ -14,7 +14,6 @@ env:
   RUN_ID: ${{ github.run_id }} 
   BUILD_BRANCH: '5.2.2' 
   BUILD_TYPE: 'FULL'
-  BUILD_REPO: 'nightly' 
  
 jobs:
  
