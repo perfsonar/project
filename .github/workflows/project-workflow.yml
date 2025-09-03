@@ -137,11 +137,8 @@ jobs:
 
               echo "Prep the keys"
               echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
-              echo "${{ secrets.GPG_KEY_ID }}" | tr -d '\r\n' > keyid.txt
               echo "${{ secrets.GPG_PASSPHRASE }}" | tr -d '\r\n' > passphrase.txt
               chmod 600 private.key passphrase.txt
-              #.echo "==> Passphrase bytes (hex):"
-              #xxd passphrase.txt
 
               echo "import keys"
               gpg --batch --import private.key
@@ -160,8 +157,9 @@ jobs:
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}"
               
               echo "Call the oneshot signer"
+              
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign \
-              | sh -s - --passphrase passphrase.txt ./artifacts/RPMS @keyid.txt
+              | sh -s - --passphrase passphrase.txt ./artifacts/RPMS "$KEYID"
 
               echo "Create the repo"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}" 
