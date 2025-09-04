@@ -558,6 +558,14 @@ install_debian()
 	    do_dry apt-get -y install "${PACKAGE}"
 	done < "${ADD_LIST}"
     fi
+
+    # If pScheduler is available, internally restart the services
+    # since Debian doesn't always start them.
+    if type pscheduler > /dev/null
+    then
+	narrate "Restarting pScheduler services"
+	do_dry pscheduler internal service restart
+    fi
 }
 
 
