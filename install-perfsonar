@@ -565,6 +565,7 @@ install_debian()
     then
 	narrate "Restarting pScheduler services"
 	do_dry pscheduler internal service restart
+	echo "Services restarted."
     fi
 }
 
