@@ -27,10 +27,21 @@ jobs:
        BUILD_REPO: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && 'staging' || 'nightly' }}
 
      steps:
+
           
         - name: Capture start date and time
           id: start_time
           run: echo "start_time=$(date -u)" >> $GITHUB_ENV
+
+        - name: Derive BUILD_BRANCH from tag (if present)
+          run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "BUILD_BRANCH=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+            echo "Using tag: ${GITHUB_REF_NAME}"
+          else
+            echo "BUILD_BRANCH=${BUILD_BRANCH}" >> "$GITHUB_ENV"
+            echo "Using default branch: ${BUILD_BRANCH}"
+          fi
 
         - name: Fetch build-vars.json from projects
           env:
