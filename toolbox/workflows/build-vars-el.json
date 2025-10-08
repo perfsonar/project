@@ -63,10 +63,6 @@
             "deps": [ "minor-packages",  "pscheduler",  "psconfig" ]
         },
         {
-            "name": "microdep", 
-            "deps": [  ]
-        },
-        {
             "name": "bundles", 
             "deps": [ "perl-shared", "archive", "owamp", "pscheduler", 
                 "host-metrics", "ls-registration-daemon" ]
