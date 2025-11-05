@@ -127,11 +127,11 @@ jobs:
             'ol8'|'el9')
               if [ "${{ env.BUILD_OS }}" = 'ol8' ]; then
                 echo "ol8"
-                el_version="8"
+                os_version="8"
                 os_dir="el"
              else
                echo "el9"
-               el_version="9"
+               os_version="9"
                os_dir="el"
              fi
 
@@ -150,7 +150,7 @@ jobs:
               file="variables.txt"
               echo "repo=$repo" > $file
               echo "build_branch=${{ env.BUILD_BRANCH }}" >> $file
-              echo "el_version=$el_version" >> $file
+              echo "os_version=$os_version" >> $file
               echo "os_dir=$os_dir" >> $file
 
               echo "Create the repo"
@@ -161,15 +161,24 @@ jobs:
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign \
               | sh -s - --passphrase passphrase.txt ./artifacts/RPMS "$KEYID"
 
-              echo "Create the repo"
+              echo "update the repo info"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}" 
    
               echo "Rsync to the distro servers"
-              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$el_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS"
-              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/RPMS/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$el_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS"
+              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/RPMS/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS
             ;;
             'd11'|'d12'|'u20'|'u22'|'u24')  
-               rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/${{ env.BUILD_OS }}
+              case "${{ env.BUILD_OS }}" in
+              'd11') os_dir="debian"; os_version="11" ;;
+              'd12') os_dir="debian"; os_version="12" ;;
+              'u20') os_dir="ubuntu"; os_version="20" ;;
+              'u22') os_dir="ubuntu"; os_version="22" ;;
+              'u24') os_dir="ubuntu"; os_version="24" ;;
+              esac
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}"
+              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}
+kk
             ;;
             esac 
 
