@@ -178,7 +178,6 @@ jobs:
               esac
               ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}"
               rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}
-kk
             ;;
             esac 
 
