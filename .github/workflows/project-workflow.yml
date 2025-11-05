@@ -176,8 +176,10 @@ jobs:
               'u22') os_dir="ubuntu"; os_version="22" ;;
               'u24') os_dir="ubuntu"; os_version="24" ;;
               esac
-              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}"
-              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}
+
+             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}"
+              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}
+             ## rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/${{ env.BUILD_OS }}
             ;;
             esac 
 
