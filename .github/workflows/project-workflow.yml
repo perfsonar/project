@@ -40,6 +40,10 @@ jobs:
             echo "BUILD_BRANCH=$BUILD_BRANCH" >> $GITHUB_ENV
             echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
             echo "BUILD_REPO=$BUILD_REPO" >> $GITHUB_ENV
+            echo "BUILD_OS=$BUILD_OS" 
+            echo "BUILD_BRANCH=$BUILD_BRANCH"
+            echo "BUILD_TYPE=$BUILD_TYPE"
+            echo "BUILD_REPO=$BUILD_REPO"
             
         - name: Check out Repo
           uses: actions/checkout@v4  
