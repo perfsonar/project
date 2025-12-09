@@ -12,7 +12,6 @@ on:
   workflow_dispatch: 
 env: 
   RUN_ID: ${{ github.run_id }} 
-  BUILD_BRANCH: '5.2.3' 
   BUILD_TYPE: 'FULL'
  
 jobs:
@@ -28,6 +27,7 @@ jobs:
      runs-on: ubuntu-latest
      env:
        BUILD_REPO: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && 'staging' || 'nightly' }}
+       BUILD_BRANCH: ${{ matrix.build_branch }}
 
      steps:
 
@@ -76,6 +76,7 @@ jobs:
            mv tmp.json  build-vars.json
            jq --arg run_id "${{ github.run_id }}" '.buildids += { "minor-packages": $run_id }'  build-vars.json  > tmp.json
            mv tmp.json  build-vars.json
+           exit 0
            
         - name: Extract repo name
           id: extract_repo_name
