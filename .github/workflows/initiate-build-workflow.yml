@@ -76,7 +76,6 @@ jobs:
            mv tmp.json  build-vars.json
            jq --arg run_id "${{ github.run_id }}" '.buildids += { "minor-packages": $run_id }'  build-vars.json  > tmp.json
            mv tmp.json  build-vars.json
-           exit 0
            
         - name: Extract repo name
           id: extract_repo_name
