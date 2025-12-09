@@ -58,7 +58,7 @@ jobs:
                  cp project/toolbox/workflows/create-el-repo.sh .
                  ;;
               'd11'|'d12'|'u20'|'u22'|'u24')
-                cp project/toolbox/workflows/create-db-reop.sh .
+                cp project/toolbox/workflows/create-db-repo.sh .
                 ;;
             esac       
             
