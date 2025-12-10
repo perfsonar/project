@@ -127,6 +127,25 @@ jobs:
     
         - name: sign and copy artifact to server
           run: |
+            echo "Prep the keys"
+            echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
+            echo "${{ secrets.GPG_PASSPHRASE }}" | tr -d '\r\n' > passphrase.txt
+            chmod 600 private.key passphrase.txt
+
+            echo "import keys"
+            gpg --batch --import private.key
+            KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
+            echo "KEYID=$KEYID" >> $GITHUB_ENV
+            echo "KEYID=$KEYID" 
+              
+            # Write variables to the file
+            file="variables.txt"
+            echo "repo=$repo" > $file
+            echo "build_branch=${{ env.BUILD_BRANCH }}" >> $file
+            echo "os_version=$os_version" >> $file
+            echo "os_dir=$os_dir" >> $file
+
+
             case "${{ env.BUILD_OS }}" in
             'ol8'|'el9')
               if [ "${{ env.BUILD_OS }}" = 'ol8' ]; then
@@ -138,24 +157,6 @@ jobs:
                os_version="9"
                os_dir="el"
              fi
-
-              echo "Prep the keys"
-              echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
-              echo "${{ secrets.GPG_PASSPHRASE }}" | tr -d '\r\n' > passphrase.txt
-              chmod 600 private.key passphrase.txt
-
-              echo "import keys"
-              gpg --batch --import private.key
-              KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
-              echo "KEYID=$KEYID" >> $GITHUB_ENV
-              echo "KEYID=$KEYID" 
-              
-              # Write variables to the file
-              file="variables.txt"
-              echo "repo=$repo" > $file
-              echo "build_branch=${{ env.BUILD_BRANCH }}" >> $file
-              echo "os_version=$os_version" >> $file
-              echo "os_dir=$os_dir" >> $file
 
               echo "Create the repo"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}"
