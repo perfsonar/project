@@ -18,9 +18,10 @@ sudo apt-get install -y dpkg-dev
 
 final_cache_path="$repo/$os_dir/"
 echo "Repo path: $final_cache_path"
-
 ls $final_cache_path
 
+echo "ls build dir"
+ls -al build
 exit
 
 
