@@ -4,11 +4,13 @@ set -e
 echo "** Run create deb repo sh **"
 
 file="/build/variables.txt"
+echo "cat variables.txt"
+cat /build/variables.txt
 echo "Before sourcing:"
 env | sort
 
 echo "Sourcing variables from $file"
-. "$file"
+source $file
 
 echo "After sourcing:"
 env | sort
