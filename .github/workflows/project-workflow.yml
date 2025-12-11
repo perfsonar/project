@@ -10,7 +10,6 @@ on:
 jobs:
        
   build-project:
-
  
     runs-on: ubuntu-latest
 
@@ -96,6 +95,11 @@ jobs:
                   cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
                  ;;
                 'd11'|'d12'|'u20'|'u22'|'u24')                
+                  mkdir -p artifacts/debian
+                  cp artifacts/${{ env.REPO }}/*.deb artifacts/debian
+                  echo "******************************"
+                  echo "list the copied files"
+                  ls -al artifacts/debian
                   ls -al artifacts/*
                   ;;
               esac
@@ -175,9 +179,13 @@ jobs:
             ;;
             'd11'|'d12'|'u20'|'u22'|'u24')  
               case "${{ env.BUILD_OS }}" in
-              'd11') os_dir="debian"; os_version="11" 
+              'd11')  
+                os_dir="debian" 
+                os_version="11" 
+                echo "os_version=$os_version" >> $file
+                echo "os_dir=$os_dir" >> $file
                 echo "update the repo info"
-                curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
+                curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.OS }}" 
                 ;;
               'd12') os_dir="debian"; os_version="12" 
                 echo "update the repo info"
@@ -199,7 +207,6 @@ jobs:
 
              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}"
               rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}
-             ## rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/${{ env.BUILD_OS }}
             ;;
             esac 
 
