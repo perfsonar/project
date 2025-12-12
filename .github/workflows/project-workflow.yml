@@ -96,7 +96,7 @@ jobs:
                  ;;
                 'd11'|'d12'|'u20'|'u22'|'u24')                
                   mkdir -p artifacts/debian
-                  cp artifacts/${{ env.REPO }}/*.deb artifacts/debian
+                  cp "$artifact_path"/*.deb artifacts/debian
                   echo "******************************"
                   echo "list the copied files"
                   ls -al artifacts/debian
