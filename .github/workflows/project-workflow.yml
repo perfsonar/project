@@ -97,11 +97,11 @@ jobs:
                 'd11'|'d12'|'u20'|'u22'|'u24')                
                   mkdir -p artifacts/debian
                   if ls artifacts/${{ env.REPO }}/*.deb >/dev/null 2>&1; then
+                    echo "copy artifacts"
                     cp artifacts/${{ env.REPO }}/*.deb artifacts/debian/
                   else
                     echo "No .deb files found in artifacts/${{ env.REPO }}, skipping copy"
                   fi
-                  cp "$artifact_path"/*.deb artifacts/debian
                   echo "******************************"
                   echo "list the copied files"
                   ls -al artifacts/debian
