@@ -185,16 +185,12 @@ jobs:
             ;;
             'd11'|'d12'|'u20'|'u22'|'u24')  
               case "${{ env.BUILD_OS }}" in
-              'd11')  
+              'd11'|'d12')  
                 os_dir="debian" 
                 os_version="11" 
                 echo "os_version=$os_version" >> $file
                 echo "os_dir=$os_dir" >> $file
                 echo "run create-db-repo with docker oneshot"
-                curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
-                ;;
-              'd12') os_dir="debian"; os_version="12" 
-                echo "update the repo info"
                 curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
                 ;;
               'u20') os_dir="ubuntu"; os_version="20" 
