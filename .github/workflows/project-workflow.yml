@@ -158,15 +158,8 @@ jobs:
 
             case "${{ env.BUILD_OS }}" in
             'ol8'|'el9')
-              if [ "${{ env.BUILD_OS }}" = 'ol8' ]; then
-                echo "ol8"
-                os_version="8"
-                os_dir="el"
-             else
-               echo "el9"
-               os_version="9"
-               os_dir="el"
-             fi
+              os="${{ env.BUILD_OS }}"
+              os_version="${os#[a-z]*}"
 
               echo "Create the repo"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}"
@@ -180,14 +173,15 @@ jobs:
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}" 
    
               echo "Rsync to the distro servers"
-              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS"
-              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/RPMS/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS"
+              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/RPMS/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS
             ;;
             'd11'|'d12'|'u20'|'u22'|'u24')  
               case "${{ env.BUILD_OS }}" in
               'd11'|'d12')  
                 os_dir="debian" 
-                os_version="${{ env.BUILD_OS }}"
+                os="${{ env.BUILD_OS }}"
+                os_version="${os#d}"
                 echo "os_version=$os_version" >> $file
                 echo "os_dir=$os_dir" >> $file
                 echo "run create-db-repo with docker oneshot"
