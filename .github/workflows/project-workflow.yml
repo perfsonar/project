@@ -187,7 +187,7 @@ jobs:
               case "${{ env.BUILD_OS }}" in
               'd11'|'d12')  
                 os_dir="debian" 
-                os_version="11" 
+                os_version="${{ env.BUILD_OS }}"
                 echo "os_version=$os_version" >> $file
                 echo "os_dir=$os_dir" >> $file
                 echo "run create-db-repo with docker oneshot"
