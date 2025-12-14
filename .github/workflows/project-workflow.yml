@@ -158,8 +158,9 @@ jobs:
 
             case "${{ env.BUILD_OS }}" in
             'ol8'|'el9')
+              os_dir="el" 
               os="${{ env.BUILD_OS }}"
-              os_version="${os##[a-z]*}"
+              os_version="${os##*[!0-9]}"
 
               echo "Create the repo"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}"
