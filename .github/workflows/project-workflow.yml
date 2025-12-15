@@ -188,15 +188,14 @@ jobs:
                 echo "run create-db-repo with docker oneshot"
                 curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
                 ;;
-              'u20') os_dir="ubuntu"; os_version="20" 
-                echo "update the repo info"
+              'u20'|'u22'|'u24')  
+                os_dir="ubuntu" 
+                os="${{ env.BUILD_OS }}"
+                os_version="${os#u}"
+                echo "os_version=$os_version" >> $file
+                echo "os_dir=$os_dir" >> $file
+                echo "run create-db-repo with docker oneshot"
                 curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
-                ;;
-              'u22') os_dir="ubuntu"; os_version="22" 
-                echo "update the repo info"
-                curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
-                ;;
-              'u24') os_dir="ubuntu"; os_version="24" 
                 echo "update the repo info"
                 curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
                 ;;
