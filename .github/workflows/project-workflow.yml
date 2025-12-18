@@ -200,12 +200,15 @@ jobs:
                 curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
                 ;;
               esac
-
+               
+              echo "get the major version"
               if [[ "${{ env.BUILD_REPO }}" == "nightly" ]]; then
                 branch="${{ env.BUILD_BRANCH }}"
                 MAJOR_VERSION="${branch%.*}.0"
+                echo "major version is $MAJOR_VERSION"
               fi
-
+    
+             echo "build the repos"
              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}"
               rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/debian/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}"
              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/$MAJOR_VERSION"

@@ -19,9 +19,9 @@ jobs:
   initiate-build:
      strategy:  
       matrix:
-          os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
+          os: [  'd11' ] 
           build_branch: [ '5.2.3', '5.2.4' ]
-
+          #os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
 
      runs-on: ubuntu-latest
      env:
