@@ -213,9 +213,9 @@ jobs:
              echo "rsync the files "
              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/debian/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/${{ env.BUILD_BRANCH }}
              echo "create the dir for the major version  "
-             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/$MAJOR_VERSION"
+             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/$MAJOR_VERSION"
              echo "rsync the files "
-             rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/debian/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/perfsonar/$MAJOR_VERSION
+             rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/debian/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/apt/${{ env.BUILD_REPO }}/$os_dir/$os_version/$MAJOR_VERSION
             ;;
             esac 
 
