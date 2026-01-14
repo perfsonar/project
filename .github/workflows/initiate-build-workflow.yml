@@ -19,8 +19,8 @@ jobs:
   initiate-build:
      strategy:  
       matrix:
-          os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
-          build_branch: [  '5.2.4' ]
+          os: [  'ol8', 'el9', 'el10', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
+          build_branch: [ '5.2.4' ]
           #os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
 
      runs-on: ubuntu-latest
@@ -53,7 +53,7 @@ jobs:
             echo "list dir"
             ls project/toolbox/workflows/ 
              case "${{ matrix.os }}" in
-              'ol8'|'el9')
+              'ol8'|'el9'|'el10')
                  cp project/toolbox/workflows/build-vars-el.json build-vars.json
                  ;;
               'u20'|'u22'|'u24')
