@@ -53,7 +53,7 @@ jobs:
           run: |
             git clone https://github.com/perfsonar/project.git project
             case "${{ env.BUILD_OS }}" in
-              'ol8'|'el9')
+              'ol8'|'el9','el10')
                  cp project/toolbox/workflows/create-el-repo.sh .
                  ;;
               'd11'|'d12'|'u20'|'u22'|'u24')
@@ -89,7 +89,7 @@ jobs:
               echo "list artifact path"
               ls -al "$artifact_path"
               case "${{ env.BUILD_OS }}" in
-                'ol8'|'el9')
+                'ol8'|'el9','el10')
                   mkdir -p artifacts/RPMS
                   echo "copy to the artifacts RPM dir"
                   cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
@@ -157,7 +157,7 @@ jobs:
 
 
             case "${{ env.BUILD_OS }}" in
-            'ol8'|'el9')
+            'ol8'|'el9','el10')
               os_dir="el" 
               os="${{ env.BUILD_OS }}"
               os_version="${os##*[!0-9]}"
