@@ -9,7 +9,7 @@ on:
   schedule: 
     - cron: "53 2 * * *"
 
-  workflow_dispatch:  
+  workflow_dispatch:
 env: 
   RUN_ID: ${{ github.run_id }} 
   BUILD_TYPE: 'FULL'
