@@ -6,7 +6,7 @@ on:
     tags:
       - '*'       # and on any tag push
  
-  schedule:
+  schedule: 
     - cron: "53 2 * * *"
 
   workflow_dispatch: 
