@@ -19,7 +19,7 @@ jobs:
   initiate-build:
      strategy:  
       matrix:
-          os: [  'el9' ] 
+          os: [ 'ol8', 'el9', 'el10', 'd12', 'u20', 'u22', 'u24' ] 
           build_branch: [ '5.2.4' ] 
           #os: [  'ol8', 'el9', 'el10', 'd12', 'u20', 'u22', 'u24' ]  
 
