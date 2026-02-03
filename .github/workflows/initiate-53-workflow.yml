@@ -1,4 +1,4 @@
-name: initiate-build-workflow
+name: initiate-53-workflow
 
 on:
   push:
