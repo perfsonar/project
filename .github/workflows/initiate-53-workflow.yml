@@ -1,0 +1,113 @@
+name: initiate-build-workflow
+
+on:
+  push:
+    branches: [ 'master' ]
+    tags:
+      - '*'       # and on any tag push
+ 
+
+  workflow_dispatch:
+env: 
+  RUN_ID: ${{ github.run_id }} 
+  BUILD_TYPE: 'FULL'
+ 
+jobs:
+ 
+  initiate-build:
+     strategy:  
+      matrix:
+          os: [ 'el9' ] 
+          build_branch: [ '5.3.0' ] 
+ 
+     runs-on: ubuntu-latest
+     env:
+       BUILD_REPO: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && 'staging' || 'nightly' }}
+       BUILD_BRANCH: ${{ matrix.build_branch }}
+
+     steps:
+
+          
+        - name: Capture start date and time
+          id: start_time
+          run: echo "start_time=$(date -u)" >> $GITHUB_ENV
+
+        - name: Derive BUILD_BRANCH from tag (if present)
+          run: |
+            if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+              echo "BUILD_BRANCH=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+              echo "Using tag: ${GITHUB_REF_NAME}"
+            else
+              echo "BUILD_BRANCH=${BUILD_BRANCH}" >> "$GITHUB_ENV"
+              echo "Using default branch: ${BUILD_BRANCH}"
+            fi
+
+        - name: Fetch build-vars.json from projects
+          env:
+             github-token: ${{ secrets.GIT_ACTIONS }}
+          run: |
+            git clone https://github.com/perfsonar/project.git project
+            echo "list dir"
+            ls project/toolbox/workflows/ 
+             case "${{ matrix.os }}" in
+              'ol8'|'el9'|'el10')
+                 cp project/toolbox/workflows/build-vars-el.json build-vars.json
+                 ;;
+              'u20'|'u22'|'u24')
+                cp project/toolbox/workflows/bulid-vars-ub.json build-vars.json
+                ;;
+              'd11'|'d12')
+                cp project/toolbox/workflows/bulid-vars-db.json build-vars.json
+                ;;
+            esac
+                          
+        - name: Add start time to build-vars.json
+          run: |
+            jq '.buildstats += { "OS": "${{ matrix.os }}", "BUILD_BRANCH": "${{ env.BUILD_BRANCH }}", "BUILD_TYPE": "${{ env.BUILD_TYPE }}", "BUILD_REPO": "${{ env.BUILD_REPO }}", "start_time": "${{ env.start_time }}", "${{ github.event.repository.name }}-start": "${{ env.start_time }}" }' build-vars.json > updated_build-vars.json
+            mv updated_build-vars.json build-vars.json
+
+        - name: update build-vars.json
+          run: |
+           jq 'del(.repos[0])' build-vars.json > tmp.json
+           mv tmp.json  build-vars.json
+           jq --arg run_id "${{ github.run_id }}" '.buildids += { "minor-packages": $run_id }'  build-vars.json  > tmp.json
+           mv tmp.json  build-vars.json
+           
+        - name: Extract repo name
+          id: extract_repo_name
+          run: |
+            jq -r '.repos[0].name' build-vars.json
+            NEXTREPO=$(jq -r '.repos[0].name' build-vars.json )
+            echo "NEXTREPO=${NEXTREPO}" >> $GITHUB_ENV
+            
+        - name: Capture start end and time
+          id: end_time
+          run: echo "end_time=$(date -u)" >> $GITHUB_ENV
+
+        - name: Add end time to build-vars.json
+          run: |
+            jq '.buildstats += {"${{ github.event.repository.name }}-end": "${{ env.end_time }}"}' build-vars.json > updated_build-vars.json
+            mv updated_build-vars.json build-vars.json
+            
+        - name: Set build-vars.json as workflow variable
+          id: set_build-vars
+          run: |
+           BUILD_VARS_JSON=$(jq -c . build-vars.json)
+           echo "BUILD_VARS_JSON=${BUILD_VARS_JSON}" >> $GITHUB_ENV
+           echo "BUILD_VARS_JSON=${BUILD_VARS_JSON}"
+           
+        - name: Pass Workflow
+          if: env.BUILD_TYPE == 'FULL'
+          uses: actions/github-script@v6
+          with:
+           github-token: ${{ secrets.GIT_ACTIONS }}
+           script: |
+             await github.rest.actions.createWorkflowDispatch({
+               owner: 'perfsonar',
+               repo:  '${{ env.NEXTREPO}}',
+               workflow_id: '${{ env.NEXTREPO }}-workflow.yml',
+               ref: 'master',
+              inputs: {
+                 BUILD_VARS_JSON: '${{ env.BUILD_VARS_JSON}}'
+               }
+             })
