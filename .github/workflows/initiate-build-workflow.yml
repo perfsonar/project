@@ -3,7 +3,7 @@ name: initiate-build-workflow
 on:
   push:
     branches: [ 'master' ]
-    tags:
+    tags:  
       - '*'       # and on any tag push
  
   schedule:
