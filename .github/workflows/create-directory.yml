@@ -1,6 +1,4 @@
 name: create-directory
- 
-
 on:
   push:
 
@@ -9,14 +7,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          known_hosts: ${{ secrets.SERVER_HOST }}
+      - name: Start SSH agent and add key
+        run: |
+          set -e
 
-      - name: Debug SSH environment and connectivity
+          echo "Starting ssh-agent..."
+          eval "$(ssh-agent -s)"
+
+          echo "Writing private key to file..."
+          echo "${{ secrets.SERVER_SSH_KEY }}" > key
+          chmod 600 key
+
+          echo "Adding key to agent..."
+          echo "${{ secrets.SERVER_SSH_PASSPHRASE }}" | ssh-add key
+
+          echo "Loaded identities:"
+          ssh-add -l
+
+      - name: Debug SSH environment
         run: |
           set -e
 
@@ -29,15 +37,6 @@ jobs:
           echo "Attempting SSH login to ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PORT }}"
           echo
 
-          echo "=== ~/.ssh CONTENTS ==="
-          ls -al ~/.ssh || true
-          echo
-
-          echo "=== SSH AGENT / IDENTITIES ==="
-          echo "SSH_AUTH_SOCK=${SSH_AUTH_SOCK:-<unset>}"
-          ssh-add -l || echo "No SSH identities loaded"
-          echo
-
           echo "=== DNS RESOLUTION ==="
           getent hosts ${{ secrets.SERVER_HOST }} || true
           echo
@@ -46,18 +45,9 @@ jobs:
           nc -zv ${{ secrets.SERVER_HOST }} ${{ secrets.SERVER_PORT }} || true
           echo
 
-          echo "=== SSH CONFIG (first 30 lines) ==="
-          ssh -G -p ${{ secrets.SERVER_PORT }} \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} | head -30 || true
-          echo
-
       - name: Create repo directory on remote server
         run: |
           set -euo pipefail
-
-          echo "Attempting SSH login as user: ${{ secrets.SERVER_USER }}"
-          echo "Target host: ${{ secrets.SERVER_HOST }}"
-          echo "Port: ${{ secrets.SERVER_PORT }}"
 
           ssh -vvv -p ${{ secrets.SERVER_PORT }} \
             -o IdentitiesOnly=yes \
