@@ -1,0 +1,24 @@
+name: create-directory
+
+on:
+  push:
+
+jobs:
+  mkdir-on-remote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          known_hosts: ${{ secrets.SERVER_HOST }}
+
+      - name: Create repo directory on remote server
+        run: |
+          set -euo pipefail
+
+          SSH_OPTS="-p ${{ secrets.SERVER_PORT }} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+          ssh $SSH_OPTS ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p repo && ls -ld repo"
