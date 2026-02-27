@@ -112,11 +112,6 @@ jobs:
             done < deps.txt
           env:
             GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
-
-        - name: list files  
-          run: |      
-            pwd
-            ls -al artifacts
         
         - uses: actions/upload-artifact@v4
           with:
@@ -124,16 +119,31 @@ jobs:
            path: artifacts
            retention-days: 5
            
-        - name: Set up SSH
+        - name: Start SSH agent and add key
           run: |
+            set -euo pipefail
+            echo "Starting ssh-agent..."
+            eval "$(ssh-agent -s)"
+            # Persist agent for next step
+            echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+            echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+            echo "Setting up ~/.ssh directory..."
             mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            echo "Writing private key..."
+            echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            echo "Adding key to agent..."
+            echo "${{ secrets.SERVER_SSH_PASSPHRASE }}" | ssh-add ~/.ssh/id_ed25519
+            echo "Loaded identities:"
+            ssh-add -l
             
-        - name: Install SSH Key
-          uses: shimataro/ssh-key-action@v2
-          with:
-            key: ${{ secrets.SERVER_SSH_KEY }}
-            passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-            known_hosts: ${{ secrets.SERVER_HOST }}
+        ##- name: Install SSH Key
+        #`#  uses: shimataro/ssh-key-action@v2
+        #  with:
+        #    key: ${{ secrets.SERVER_SSH_KEY }}
+        #    passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+        #    known_hosts: ${{ secrets.SERVER_HOST }}
     
         - name: sign and copy artifact to server
           run: |
