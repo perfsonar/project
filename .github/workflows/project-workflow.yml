@@ -128,19 +128,12 @@ jobs:
           run: |
             mkdir -p ~/.ssh
             
-       ##- name: Install SSH Key
-       #   uses: shimataro/ssh-key-action@v2
-       #   with:
-       #     key: ${{ secrets.SERVER_SSH_KEY }}
-       #     known_hosts: ${{ secrets.SERVER_HOST }}
-
-        - name: Setup SSH Agent
-          uses: webfactory/ssh-agent@v0.9.0
+        - name: Install SSH Key
+          uses: shimataro/ssh-key-action@v2
           with:
-            ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
-            ssh-passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-            
-
+            key: ${{ secrets.SERVER_SSH_KEY }}
+            passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+            known_hosts: ${{ secrets.SERVER_HOST }}
     
         - name: sign and copy artifact to server
           run: |
