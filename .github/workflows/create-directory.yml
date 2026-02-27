@@ -9,20 +9,16 @@ jobs:
     steps:
       - name: Start SSH agent and add key
         run: |
-          set -e
+         set -euo pipefail
+         eval "$(ssh-agent -s)"
+         echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+         echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
 
-          echo "Starting ssh-agent..."
-          eval "$(ssh-agent -s)"
+         echo "${{ secrets.SERVER_SSH_KEY }}" > key
+         chmod 600 key
 
-          echo "Writing private key to file..."
-          echo "${{ secrets.SERVER_SSH_KEY }}" > key
-          chmod 600 key
-
-          echo "Adding key to agent..."
-          echo "${{ secrets.SERVER_SSH_PASSPHRASE }}" | ssh-add key
-
-          echo "Loaded identities:"
-          ssh-add -l
+         echo "${{ secrets.SERVER_SSH_PASSPHRASE }}" | ssh-add key
+         ssh-add -l
 
       - name: Debug SSH environment
         run: |
