@@ -220,7 +220,7 @@ jobs:
               fi
     
              echo "create the dir and sync for the major version  "
-             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}${{ secrets.SERVER_HOST }} "mkdir -p ~/distribution/apt/$os_dir/$os_version/$MAJOR_VERSION"
+             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p ~/distribution/apt/$os_dir/$os_version/$MAJOR_VERSION"
              echo "rsync the files "
              rsync -avz -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/debian/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/distribution/apt/$os_dir/$os_version/$MAJOR_VERSION
             ;;
