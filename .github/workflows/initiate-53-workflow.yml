@@ -9,7 +9,7 @@ on:
 
   workflow_dispatch:
 env: 
-  RUN_ID: ${{ github.run_id }} 
+  RUN_ID: ${{ github.run_id }}   
   BUILD_TYPE: 'FULL'
  
 jobs:
