@@ -1,7 +1,7 @@
 name: initiate-53-workflow
 
 on:
-  push:
+  push: 
     branches: [ 'master' ]
     tags: 
       - '*'       # and on any tag push
