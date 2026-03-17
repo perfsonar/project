@@ -95,19 +95,23 @@ jobs:
            BUILD_VARS_JSON=$(jq -c . build-vars.json)
            echo "BUILD_VARS_JSON=${BUILD_VARS_JSON}" >> $GITHUB_ENV
            echo "BUILD_VARS_JSON=${BUILD_VARS_JSON}"
+         - uses: actions/github-script@v6
+            with:
+              script: |
+                core.info('hello')
            
-        - name: Pass Workflow
-          if: env.BUILD_TYPE == 'FULL'
-          uses: actions/github-script@v6
-          with:
-           github-token: ${{ secrets.GIT_ACTIONS }}
-           script: |
-             await github.rest.actions.createWorkflowDispatch({
-               owner: 'perfsonar',
-               repo:  '${{ env.NEXTREPO}}',
-               workflow_id: '${{ env.NEXTREPO }}-workflow.yml',
-               ref: 'master',
-              inputs: {
-                 BUILD_VARS_JSON: '${{ env.BUILD_VARS_JSON}}'
-               }
-             })
+        #- name: Pass Workflow
+        #  if: env.BUILD_TYPE == 'FULL'
+        #  uses: actions/github-script@v6
+        #  with:
+        #   github-token: ${{ secrets.GIT_ACTIONS }}
+        #   script: |
+        #     await github.rest.actions.createWorkflowDispatch({
+        #       owner: 'perfsonar',
+        #       repo:  '${{ env.NEXTREPO}}',
+        #       workflow_id: '${{ env.NEXTREPO }}-workflow.yml',
+        #       ref: 'master',
+        #      inputs: {
+        #         BUILD_VARS_JSON: '${{ env.BUILD_VARS_JSON}}'
+        #       }
+        #     })
