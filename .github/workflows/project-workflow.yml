@@ -45,7 +45,7 @@ jobs:
             echo "BUILD_REPO=$BUILD_REPO"
             
         - name: Check out Repo
-          uses: actions/checkout@v4  
+          uses: actions/checkout@v6  
           
         - name: Fetch workflow script from projects
           env:
@@ -113,7 +113,7 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
         
-        - uses: actions/upload-artifact@v4
+        - uses: actions/upload-artifact@v6
           with:
            name: ${{ github.event.repository.name }}-${{ env.BUILD_OS }}
            path: artifacts
