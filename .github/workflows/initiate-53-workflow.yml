@@ -95,10 +95,11 @@ jobs:
            BUILD_VARS_JSON=$(jq -c . build-vars.json)
            echo "BUILD_VARS_JSON=${BUILD_VARS_JSON}" >> $GITHUB_ENV
            echo "BUILD_VARS_JSON=${BUILD_VARS_JSON}"
-         - uses: actions/github-script@v6
-            with:
-              script: |
-                core.info('hello')
+         - name: hellow world
+           uses: actions/github-script@v6
+           with:
+            script: |
+              core.info('hello')
            
         #- name: Pass Workflow
         #  if: env.BUILD_TYPE == 'FULL'
