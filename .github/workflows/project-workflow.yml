@@ -170,8 +170,7 @@ jobs:
               
               echo "Call the oneshot signer for $os_dir version $os_version"
               
-              curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign \
-              | sh -s - --passphrase passphrase.txt ./artifacts/RPMS "$KEYID"
+             ## curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign | sh -s - --passphrase passphrase.txt ./artifacts/RPMS "$KEYID"
 
               echo "update the repo info"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}" 
