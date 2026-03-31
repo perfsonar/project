@@ -188,8 +188,6 @@ jobs:
                 os_version="${os#d}"
                 echo "os_version=$os_version" >> $file
                 echo "os_dir=$os_dir" >> $file
-                echo "run create-db-repo with docker oneshot"
-                curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
                 ;;
               'u20'|'u22'|'u24')  
                 os_dir="ubuntu" 
@@ -197,10 +195,6 @@ jobs:
                 os_version="${os#u}"
                 echo "os_version=$os_version" >> $file
                 echo "os_dir=$os_dir" >> $file
-                echo "run create-db-repo with docker oneshot"
-                curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
-                echo "update the repo info"
-                curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
                 ;;
               esac
                
@@ -211,6 +205,8 @@ jobs:
                 echo "major version is $MAJOR_VERSION"
               fi
     
+             echo "run create-db-repo with docker oneshot"
+             curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
              echo "create the dir and sync for the major version  "
              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p ~/distribution/apt/$os_dir/$os_version/$MAJOR_VERSION"
              echo "rsync the files "
