@@ -1,6 +1,4 @@
 
-#!/usr/bin/env bash
-set -euo pipefail
 
 echo "** build deb repo with reprepro **"
 
