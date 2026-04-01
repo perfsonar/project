@@ -1,0 +1,81 @@
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.3-staging
+Description: perfSONAR Debian repository for the 5.3 release - staging packages
+Architectures: amd64 armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: perfsonar-5.3 perfsonar-release perfsonar-minor-staging
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.3-snapshot
+Description: perfSONAR Debian repository for the 5.3 release - snapshot packages
+Architectures: amd64 armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: UNRELEASED
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.2-staging
+Description: perfSONAR Debian repository for the 5.2 release - staging packages
+Architectures: amd64 armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: perfsonar-5.2 perfsonar-release perfsonar-minor-staging
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.2-snapshot
+Description: perfSONAR Debian repository for the 5.2 release - snapshot packages
+Architectures: amd64 armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: UNRELEASED
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.1-staging
+Description: perfSONAR Debian repository for the 5.1 release - staging packages
+Architectures: amd64 armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: perfsonar-5.1 perfsonar-release perfsonar-minor-staging
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.1-snapshot
+Description: perfSONAR Debian repository for the 5.1 release - snapshot packages
+Architectures: amd64 armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: UNRELEASED
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.0-staging
+Description: perfSONAR Debian repository for the 5.0 release - staging packages
+Architectures: amd64 armel armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: perfsonar-5.0 perfsonar-release perfsonar-minor-staging
+
+Origin: perfSONAR
+Label: perfsonar.net
+Codename: perfsonar-5.0-snapshot
+Description: perfSONAR Debian repository for the 5.0 release - snapshot packages
+Architectures: amd64 armel armhf arm64 ppc64el source
+Components: main
+Tracking: minimal
+SignWith: 8968F5F6
+AlsoAcceptFor: UNRELEASED
+
