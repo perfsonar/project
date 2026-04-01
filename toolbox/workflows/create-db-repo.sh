@@ -6,6 +6,9 @@ echo "** build deb repo with reprepro **"
 
 file="/build/variables.txt"
 
+echo "list /build/project/toolbox/workflows"
+ls -al /build/project/toolbox/workflows/
+
 echo "Contents of variables file:"
 cat "$file"
 . "$file"
@@ -27,7 +30,7 @@ echo "Repo contents:"
 ls -R | head -50
 
 echo "copy the distribution file"
-cp /build/distribution /var/local/repo/distribution
+cp /build/project/toolbox/workflows/distribution /var/local/repo/distribution
 
 echo "Installing required packages..."
 sudo apt-get update
