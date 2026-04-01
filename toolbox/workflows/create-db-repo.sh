@@ -29,8 +29,8 @@ pwd
 echo "Repo contents:"
 ls -R | head -50
 
-echo "copy the distribution file"
-cp /build/project/toolbox/workflows/distribution /var/local/repo/distribution
+echo "copy the distributions file"
+cp /build/project/toolbox/workflows/distributions /var/local/repo/distributions
 
 echo "Installing required packages..."
 sudo apt-get update
@@ -39,16 +39,6 @@ sudo apt-get install -y reprepro dpkg-dev
 echo "Creating repo directories..."
 sudo mkdir -p "$REPO_DIR/conf"
 
-echo "Writing distributions config..."
-sudo tee "$REPO_DIR/conf/distributions" > /dev/null <<EOF
-Origin: $ORIGIN
-Label: $LABEL
-Suite: $DIST
-Codename: $DIST
-Architectures: $ARCH
-Components: $COMPONENT
-Description: $DESCRIPTION
-EOF
 
 echo "Copying deb files into repo working area..."
 sudo mkdir -p "$REPO_DIR"
