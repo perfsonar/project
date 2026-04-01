@@ -41,6 +41,10 @@
             "deps": [ "perl-shared",  "pscheduler" ]
         },
         {
+            "name": "microdep",
+            "deps": [  ]
+        },
+        {
             "name": "grafana", 
             "deps": [ "perl-shared", "pscheduler", "psconfig" ]
         },
