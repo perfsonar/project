@@ -1,4 +1,6 @@
 
+#!/bin/sh
+set -eu
 
 echo "** build deb repo with reprepro **"
 
@@ -6,29 +8,17 @@ file="/build/variables.txt"
 
 echo "Contents of variables file:"
 cat "$file"
-source "$file"
+. "$file"
 
-# Source directory containing built .deb packages
 SRC_DIR="artifacts/debian"
-
-# Target reprepro repository root
 REPO_DIR="/var/local/repo"
 
-# These can come from variables.txt if present
-# Fallbacks are provided so the script still works
-DIST="${DIST:-${BUILD_BRANCH:-stable}}"
+DIST="${DIST:-stable}"
 COMPONENT="${COMPONENT:-main}"
-ARCH="${ARCH:-$(dpkg --print-architecture)}"
+ARCH="${ARCH:-amd64}"
 ORIGIN="${ORIGIN:-perfSONAR}"
 LABEL="${LABEL:-perfSONAR}"
 DESCRIPTION="${DESCRIPTION:-perfSONAR APT Repository}"
-
-echo "Using settings:"
-echo "  SRC_DIR=$SRC_DIR"
-echo "  REPO_DIR=$REPO_DIR"
-echo "  DIST=$DIST"
-echo "  COMPONENT=$COMPONENT"
-echo "  ARCH=$ARCH"
 
 echo "Installing required packages..."
 sudo apt-get update
@@ -36,7 +26,6 @@ sudo apt-get install -y reprepro dpkg-dev
 
 echo "Creating repo directories..."
 sudo mkdir -p "$REPO_DIR/conf"
-sudo mkdir -p "$REPO_DIR/incoming"
 
 echo "Writing distributions config..."
 sudo tee "$REPO_DIR/conf/distributions" > /dev/null <<EOF
@@ -44,31 +33,35 @@ Origin: $ORIGIN
 Label: $LABEL
 Suite: $DIST
 Codename: $DIST
-Architectures: $ARCH source
+Architectures: $ARCH
 Components: $COMPONENT
 Description: $DESCRIPTION
 EOF
 
 echo "Copying deb files into repo working area..."
-sudo find "$REPO_DIR" -maxdepth 1 -type f -name '*.deb' -delete || true
-sudo cp -v "$SRC_DIR"/*.deb "$REPO_DIR/"
+sudo mkdir -p "$REPO_DIR"
+sudo find "$REPO_DIR" -maxdepth 1 -type f -name '*.deb' -exec rm -f {} \;
+sudo cp -v "$SRC_DIR"/*.deb "$REPO_DIR"/
 
 echo "Contents of $REPO_DIR before import:"
 sudo ls -l "$REPO_DIR"
 
 echo "Adding packages to reprepro..."
-shopt -s nullglob
-deb_files=( "$REPO_DIR"/*.deb )
+found_deb=0
+for deb in "$REPO_DIR"/*.deb; do
+    if [ ! -f "$deb" ]; then
+        continue
+    fi
 
-if [ ${#deb_files[@]} -eq 0 ]; then
-    echo "ERROR: No .deb files found in $REPO_DIR"
-    exit 1
-fi
-
-for deb in "${deb_files[@]}"; do
+    found_deb=1
     echo "Including $deb"
     sudo reprepro -b "$REPO_DIR" includedeb "$DIST" "$deb"
 done
+
+if [ "$found_deb" -eq 0 ]; then
+    echo "ERROR: No .deb files found in $REPO_DIR"
+    exit 1
+fi
 
 echo "Final repo contents:"
 sudo find "$REPO_DIR" -maxdepth 3 -type f | sort
