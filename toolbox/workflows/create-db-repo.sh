@@ -20,6 +20,15 @@ ORIGIN="${ORIGIN:-perfSONAR}"
 LABEL="${LABEL:-perfSONAR}"
 DESCRIPTION="${DESCRIPTION:-perfSONAR APT Repository}"
 
+echo "Current directory:"
+pwd
+
+echo "Repo contents:"
+ls -R | head -50
+
+echo "copy the distribution file"
+cp /build/distribution /var/local/repo/distribution
+
 echo "Installing required packages..."
 sudo apt-get update
 sudo apt-get install -y reprepro dpkg-dev
