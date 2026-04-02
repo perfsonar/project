@@ -6,7 +6,6 @@ Description: perfSONAR Debian repository for the 5.3 release - staging packages
 Architectures: amd64 armhf arm64 ppc64el source
 Components: main
 Tracking: minimal
-SignWith: 8968F5F6
 AlsoAcceptFor: perfsonar-5.3 perfsonar-release perfsonar-minor-staging
 
 Origin: perfSONAR
