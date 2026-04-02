@@ -38,7 +38,7 @@ echo "Creating repo directories..."
 sudo mkdir -p "$REPO_DIR/conf"
 
 echo "copy the distributions file"
-cp "/build/project/toolbox/workflows/distributions" "$REPO_DIR/conf/distributions"
+sudo cp "/build/project/toolbox/workflows/distributions" "$REPO_DIR/conf/distributions"
 
 echo "Copying deb files into repo working area..."
 sudo mkdir -p "$REPO_DIR"
