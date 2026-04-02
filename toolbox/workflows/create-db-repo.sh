@@ -16,7 +16,7 @@ cat "$file"
 SRC_DIR="artifacts/debian"
 REPO_DIR="/var/local/repo"
 
-DIST="${DIST:-stable}"
+DIST="${DIST:-perfsonar-5.3-staging}"
 COMPONENT="${COMPONENT:-main}"
 ARCH="${ARCH:-amd64}"
 ORIGIN="${ORIGIN:-perfSONAR}"
