@@ -66,6 +66,8 @@ if [ "$found_deb" -eq 0 ]; then
 fi
 
 echo "Final repo contents:"
-sudo find "$REPO_DIR" -maxdepth 3 -type f | sort
-
+#sudo find "$REPO_DIR" -maxdepth 3 -type f | sort
+pwd
+ls -al artifacts
+sudo mv /var/local/repo /artifacts/
 echo "** End build deb repo with reprepro **"
