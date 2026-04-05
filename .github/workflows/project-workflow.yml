@@ -217,12 +217,11 @@ jobs:
              echo "what is in artifacts dir?"
              ls -al ./artifacts
              echo "whats is var repo?"
-             ls -al ./artifacts/var/local/repo
+             ls -al ./artifacts/repo
 
              rsync -avz \
              -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" \
-             /var/local/repo/dists/ \
-             /var/local/repo/pool/ \
+             ./artifacts/repo \
              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/distribution/apt/$os_dir/$os_version/$MAJOR_VERSION/
             ;;
             esac 
