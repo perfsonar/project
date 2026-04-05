@@ -69,5 +69,10 @@ echo "Final repo contents:"
 #sudo find "$REPO_DIR" -maxdepth 3 -type f | sort
 pwd
 ls -al artifacts
-sudo mv /var/local/repo /artifacts/
+sudo mv /var/local/repo ./artifacts/
+echo "list var local/repo"
+ls -al /var/local/repo
+echo "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+echo "list var artifacts local/repo"
+ls -al ./artifacts/var/local/repo
 echo "** End build deb repo with reprepro **"

@@ -215,7 +215,9 @@ jobs:
              echo "ls -al"
              ls -al 
              echo "what is in artifacts dir?"
-             ls -al artifacts
+             ls -al ./artifacts
+             echo "whats is var repo?"
+             ls -al ./artifacts/var/local/repo
 
              rsync -avz \
              -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" \
