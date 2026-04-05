@@ -214,6 +214,8 @@ jobs:
              pwd
              echo "ls -al"
              ls -al 
+             echo "what is in artifacts dir?"
+             ls -al artifacts
 
              rsync -avz \
              -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" \
