@@ -28,15 +28,6 @@ jobs:
           echo "BUILD_BRANCH: ${{ inputs.BUILD_BRANCH }}"
           echo "JSON: ${{ inputs.BUILD_VARS_JSON }}"   
           
-      - name: temp added since no 5.2.0 branch for microdep  
-        id: set_branch
-        run: |
-          if [ "${{ github.event.repository.name }}" = "microdep" ]; then
-            echo "BRANCH=5.1.0" >> $GITHUB_ENV
-          else
-            echo "BRANCH=5.2.0" >> $GITHUB_ENV
-          fi
-          
       - name: Check out Repo
         uses: actions/checkout@v6
         with:
