@@ -63,8 +63,12 @@
             "deps": [ "minor-packages",  "pscheduler",  "psconfig" ]
         },
         {
-            "name": "microdep", 
+            "name": "pstracetree", 
             "deps": []
+        },
+        {
+            "name": "microdep", 
+            "deps": [ "pstracetree" ]
         },
         {
             "name": "bundles", 
