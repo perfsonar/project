@@ -31,8 +31,7 @@ jobs:
       - name: Check out Repo
         uses: actions/checkout@v6
         with:
-          ref: ${{ env.BRANCH }}
-          # TODO: change back to ${{ inputs.BUILD_BRANCH }} once micrdep branch check is removed
+          ref: ${{ inputs.BUILD_BRANCH }}
           
       - name: Create a temporary artifact downloads folder
         run: mkdir aritfacts
