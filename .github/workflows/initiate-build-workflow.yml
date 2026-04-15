@@ -19,9 +19,9 @@ jobs:
   initiate-build:
      strategy:  
       matrix:
-          os: [ 'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
+          os: [ 'el9' ] 
           build_branch: [ '5.3.0' ]           
-
+          #[ 'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
           # 4/7/26 - el10 still under development so removing from matrix 
 
  
