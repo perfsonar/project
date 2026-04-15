@@ -1,6 +1,6 @@
 name: initiate-build-workflow
 
-on:
+on: 
   push:
     branches: [ 'master' ]
     tags:  
