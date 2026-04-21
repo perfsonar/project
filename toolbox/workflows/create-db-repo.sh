@@ -16,7 +16,7 @@ cat "$file"
 SRC_DIR="artifacts/debian"
 REPO_DIR="/var/local/repo"
 
-#TODO: detemine this dynamic nightly build vs tag
+# TODO: determine this dynamic nightly build vs tag
 DIST="${DIST:-perfsonar-5.3-snapshot}"
 COMPONENT="${COMPONENT:-main}"
 ARCH="${ARCH:-amd64}"
@@ -30,7 +30,6 @@ pwd
 echo "Repo contents:"
 ls -R | head -50
 
-
 echo "Installing required packages..."
 sudo apt-get update
 sudo apt-get install -y reprepro dpkg-dev
@@ -38,40 +37,43 @@ sudo apt-get install -y reprepro dpkg-dev
 echo "Creating repo directories..."
 sudo mkdir -p "$REPO_DIR/conf"
 
-echo "copy the distributions file"
+echo "Copy the distributions file"
 sudo cp "/build/project/toolbox/workflows/distributions" "$REPO_DIR/conf/distributions"
 
-echo "Copying deb files into repo working area..."
-sudo mkdir -p "$REPO_DIR"
-
-echo "Contents of $REPO_DIR before import:"
-sudo ls -l "$REPO_DIR"
+echo "Contents of $SRC_DIR:"
+ls -l "$SRC_DIR" || true
 
 echo "Adding packages to reprepro..."
-#found_deb=0
-#for deb in "$REPO_DIR"/*.deb; do
-#    if [ ! -f "$deb" ]; then
-#        continue
-#    fi
-#
-#    found_deb=1
-#    echo "Including $deb"
-#    sudo reprepro -b "$REPO_DIR" includedeb "$DIST" "$deb"
-#done
-#
-#if [ "$found_deb" -eq 0 ]; then
-#    echo "ERROR: No .deb files found in $REPO_DIR"
-#    exit 1
-#fi
+
+found_pkg=0
+
+# Include source packages (.dsc)
+for dsc in "$SRC_DIR"/*.dsc; do
+    [ -f "$dsc" ] || continue
+    found_pkg=1
+    echo "Including DSC: $dsc"
+    sudo reprepro --waitforlock 12 -v -b "$REPO_DIR" includedsc "$DIST" "$dsc"
+done
+
+# Include binary packages via .changes
+for changes in "$SRC_DIR"/*_[^s][a-z0-9]*.changes; do
+    [ -f "$changes" ] || continue
+    found_pkg=1
+    echo "Including CHANGES: $changes"
+    sudo reprepro --waitforlock 12 --ignore=wrongdistribution -v -b "$REPO_DIR" include "$DIST" "$changes"
+done
+
+if [ "$found_pkg" -eq 0 ]; then
+    echo "ERROR: No .dsc or .changes files found in $SRC_DIR"
+    exit 1
+fi
 
 echo "Final repo contents:"
-echo $REPO_DIR
+echo "$REPO_DIR"
+sudo ls -al "$REPO_DIR"
 
-sudo find "$REPO_DIR" -maxdepth 3 -type f | sort
-pwd
-ls -al artifacts
-
-#sudo mkdir ./artifacts/repo
-#sudo mv "$REPO_DIR"/* ./artifacts/repo/
+echo "Exporting repo artifacts..."
+mkdir -p ./artifacts/repo
+sudo cp -r "$REPO_DIR"/* ./artifacts/repo/
 
 echo "** End build deb repo with reprepro **"
