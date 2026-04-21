@@ -85,7 +85,6 @@ jobs:
               echo "rund id $run_id"
               gh run download $run_id --repo perfsonar/$repo -D artifacts/$repo --name "$repo-${{ env.BUILD_OS  }}"  
               artifact_path="artifacts/$repo"
-              pwd
               echo "list artifact path"
               ls -al "$artifact_path"
               case "${{ env.BUILD_OS }}" in
@@ -96,15 +95,14 @@ jobs:
                  ;;
                 'd11'|'d12'|'u20'|'u22'|'u24')                
                   mkdir -p artifacts/debian
-                  if ls "$artifact_path"/*.deb >/dev/null 2>&1; then
-                    echo "copy artifacts from $artifact_path"
-                    cp "$artifact_path"/*.deb artifacts/debian/
+                  if [ -d "$artifact_path" ]; then
+                     echo "copy directory $artifact_path"
+                     cp -r "$artifact_path" artifacts/debian/
                   else
-                    echo "No .deb files found in $artifact_path skipping copy"
+                     echo "Directory $artifact_path not found, skipping copy"
                   fi
                   echo "*********************************************"
                   echo "list the copied files"
-                  ls -al artifacts/debian
                   ls -al artifacts/*
                   echo "*********end copy artifacts for $artifact_path ****************"
                   ;;
