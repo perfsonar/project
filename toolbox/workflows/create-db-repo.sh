@@ -17,7 +17,7 @@ SRC_DIR="artifacts/debian"
 REPO_DIR="/var/local/repo"
 
 # TODO: determine this dynamic nightly build vs tag
-DIST="${DIST:-perfsonar-5.3-staging}"
+DIST="${DIST:-perfsonar-5.3-snapshot}"
 COMPONENT="${COMPONENT:-main}"
 ARCH="${ARCH:-amd64}"
 ORIGIN="${ORIGIN:-perfSONAR}"
