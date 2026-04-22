@@ -27,8 +27,6 @@ DESCRIPTION="${DESCRIPTION:-perfSONAR APT Repository}"
 echo "Current directory:"
 pwd
 
-echo "Repo contents:"
-ls -R | head -50
 
 echo "Installing required packages..."
 sudo apt-get update
@@ -47,24 +45,30 @@ echo "Adding packages to reprepro..."
 
 found_pkg=0
 
-# Include source packages (.dsc)
-for dsc in "$SRC_DIR"/*.dsc; do
-    [ -f "$dsc" ] || continue
-    found_pkg=1
-    echo "Including DSC: $dsc"
-    sudo reprepro --waitforlock 12 -v -b "$REPO_DIR" includedsc "$DIST" "$dsc"
-done
+for subdir in "$SRC_DIR"/*; do
+    [ -d "$subdir" ] || continue
 
-# Include binary packages via .changes
-for changes in "$SRC_DIR"/*_[^s][a-z0-9]*.changes; do
-    [ -f "$changes" ] || continue
-    found_pkg=1
-    echo "Including CHANGES: $changes"
-    sudo reprepro --waitforlock 12 --ignore=wrongdistribution -v -b "$REPO_DIR" include "$DIST" "$changes"
+    echo "Processing subdirectory: $subdir"
+
+    # Include source packages (.dsc)
+    for dsc in "$subdir"/*.dsc; do
+        [ -f "$dsc" ] || continue
+        found_pkg=1
+        echo "Including DSC: $dsc"
+        sudo reprepro --waitforlock 12 -v -b "$REPO_DIR" includedsc "$DIST" "$dsc"
+    done
+
+    # Include binary packages via .changes
+    for changes in "$subdir"/*_[^s][a-z0-9]*.changes; do
+        [ -f "$changes" ] || continue
+        found_pkg=1
+        echo "Including CHANGES: $changes"
+        sudo reprepro --waitforlock 12 --ignore=wrongdistribution -v -b "$REPO_DIR" include "$DIST" "$changes"
+    done
 done
 
 if [ "$found_pkg" -eq 0 ]; then
-    echo "ERROR: No .dsc or .changes files found in $SRC_DIR"
+    echo "ERROR: No .dsc or .changes files found in any subdirectory of $SRC_DIR"
     exit 1
 fi
 
