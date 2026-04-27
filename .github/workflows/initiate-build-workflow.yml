@@ -59,10 +59,10 @@ jobs:
                  cp project/toolbox/workflows/build-vars-el.json build-vars.json
                  ;;
               'u20'|'u22'|'u24')
-                cp project/toolbox/workflows/bulid-vars-ub.json build-vars.json
+                cp project/toolbox/workflows/build-vars-ub.json build-vars.json
                 ;;
               'd11'|'d12')
-                cp project/toolbox/workflows/bulid-vars-db.json build-vars.json
+                cp project/toolbox/workflows/build-vars-db.json build-vars.json
                 ;;
             esac
                           
