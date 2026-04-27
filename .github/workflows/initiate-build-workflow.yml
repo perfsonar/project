@@ -4,7 +4,7 @@ on:
   push:
     branches: [ 'master' ]
     tags:  
-      - '*'
+      - '*' 
     
   schedule:
     - cron: "53 2 * * *"
