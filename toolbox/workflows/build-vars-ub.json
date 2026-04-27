@@ -1,4 +1,3 @@
- 
 {
     "repos": [
         {
@@ -23,44 +22,35 @@
         },
         {
             "name": "perl-shared",
-            "deps": [ "pscheduler"]
-        },
-        {
-            "name": "psconfig",
-            "deps": [  "minor-packages", "pscheduler" ]
-        },
-        {
-            "name": "host-metrics", 
-            "deps": [ "minor-packages", "perl-shared", "pscheduler", "psconfig" ]
-        },
-        {
-            "name": "elmond",
-            "deps": [  "minor-packages", "pscheduler" ]
-        },
-        {
-            "name": "grafana", 
-            "deps": [ "minor-packages", "psconfig", "pscheduler"  ]
-        },
-        {
-            "name": "logstash", 
-            "deps": [ "minor-packages", "psconfig" ]
-        },
-        {
-            "name": "archive", 
-            "deps": [ "minor-packages", "perl-shared", "pscheduler", 
-                "elmond", "logstash", "host-metrics", "psconfig" ]
+            "deps": ["pscheduler"]
         },
         {
             "name": "ls-registration-daemon", 
-            "deps": [ "minor-packages",   "pscheduler" ,"perl-shared" ]
-        },        
-        {
-            "name": "psconfig-web", 
-            "deps": [ "minor-packages",   "pscheduler",  "psconfig" ]
+            "deps": [ "perl-shared", "pscheduler" ]
         },
         {
-            "name": "sca-auth", 
-            "deps": [ "minor-packages",  "pscheduler",  "psconfig" ]
+            "name": "psconfig",
+            "deps": [ "perl-shared",  "pscheduler" ]
+        },
+        {
+            "name": "host-metrics", 
+            "deps": [ "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "elmond",
+            "deps": [ "perl-shared",  "pscheduler" ]
+        },
+        {
+            "name": "grafana", 
+            "deps": [ "perl-shared", "pscheduler", "psconfig" ]
+        },
+        {
+            "name": "logstash", 
+            "deps": [ "minor-packages", "psconfig", "perl-shared", "pscheduler" ]
+        },
+        {
+            "name": "archive", 
+            "deps": [ "perl-shared", "pscheduler", "psconfig", "minor-packages", "logstash" ]
         },
         {
             "name": "pstracetree", 
@@ -82,15 +72,11 @@
                  "logstash", "perl-shared", "host-metrics", "elmond" ]
         },
         {
-            "name": "perfsonar-repo",
-            "deps": []
-        },
-        {
             "name": "project", 
             "deps": [ "minor-packages", "i2util", "owamp", "pscheduler", 
-                "perl-shared", "host-metrics", "psconfig", "elmond", "grafana",
-                "logstash", "archive", "ls-registration-daemon", "psconfig-web",
-                "sca-auth", "pstracetree", "microdep", "toolkit", "bundles", "perfsonar-repo" ]
+                "perl-shared", "ls-registration-daemon", "host-metrics", "psconfig",
+                "elmond", "grafana", "logstash", "archive",
+                 "toolkit", "bundles" ]
         }
     ],
     "buildids": {
