@@ -50,8 +50,8 @@ jobs:
           fi
 
       - name: Fetch build-vars.json from projects
-        env:
-          github-token: ${{ secrets.GIT_ACTIONS }}
+          env:
+            github-token: ${{ secrets.GIT_ACTIONS }}
           run: |
             git clone https://github.com/perfsonar/project.git project
             echo "list dir"
