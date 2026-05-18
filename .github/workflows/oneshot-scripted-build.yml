@@ -34,7 +34,7 @@ jobs:
           echo "JSON: ${{ inputs.BUILD_VARS_JSON }}"  
           
       - name: Check out Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.BUILD_BRANCH }}
           
@@ -140,7 +140,7 @@ jobs:
           curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run "${{ steps.scriptvar.outputs.SCRIPT_NAME }}"  . "${{ inputs.BUILD_OS }}"
             
       
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
            name: ${{ github.event.repository.name }}-${{ inputs.BUILD_OS }}
            path: unibuild-repo

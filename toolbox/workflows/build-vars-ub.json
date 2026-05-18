@@ -53,6 +53,14 @@
             "deps": [ "perl-shared", "pscheduler", "psconfig", "minor-packages", "logstash" ]
         },
         {
+            "name": "pstracetree", 
+            "deps": []
+        },
+        {
+            "name": "microdep", 
+            "deps": [ "pstracetree" ]
+        },
+        {
             "name": "bundles", 
             "deps": [ "perl-shared", "archive", "owamp", "pscheduler", 
                 "host-metrics", "ls-registration-daemon" ]

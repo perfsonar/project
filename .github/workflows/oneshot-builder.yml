@@ -28,20 +28,10 @@ jobs:
           echo "BUILD_BRANCH: ${{ inputs.BUILD_BRANCH }}"
           echo "JSON: ${{ inputs.BUILD_VARS_JSON }}"   
           
-      - name: temp added since no 5.2.0 branch for microdep  
-        id: set_branch
-        run: |
-          if [ "${{ github.event.repository.name }}" = "microdep" ]; then
-            echo "BRANCH=5.1.0" >> $GITHUB_ENV
-          else
-            echo "BRANCH=5.2.0" >> $GITHUB_ENV
-          fi
-          
       - name: Check out Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          ref: ${{ env.BRANCH }}
-          # TODO: change back to ${{ inputs.BUILD_BRANCH }} once micrdep branch check is removed
+          ref: ${{ inputs.BUILD_BRANCH }}
           
       - name: Create a temporary artifact downloads folder
         run: mkdir aritfacts
@@ -50,7 +40,7 @@ jobs:
         run: |
           curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - . '${{ inputs.BUILD_OS }}'  
           
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
            name: ${{ github.event.repository.name }}-${{ inputs.BUILD_OS }}
            path: unibuild-repo

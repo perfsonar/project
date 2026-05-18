@@ -10,7 +10,6 @@ on:
 jobs:
        
   build-project:
-
  
     runs-on: ubuntu-latest
 
@@ -40,9 +39,13 @@ jobs:
             echo "BUILD_BRANCH=$BUILD_BRANCH" >> $GITHUB_ENV
             echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
             echo "BUILD_REPO=$BUILD_REPO" >> $GITHUB_ENV
+            echo "BUILD_OS=$BUILD_OS" 
+            echo "BUILD_BRANCH=$BUILD_BRANCH"
+            echo "BUILD_TYPE=$BUILD_TYPE"
+            echo "BUILD_REPO=$BUILD_REPO"
             
         - name: Check out Repo
-          uses: actions/checkout@v4  
+          uses: actions/checkout@v6  
           
         - name: Fetch workflow script from projects
           env:
@@ -50,11 +53,11 @@ jobs:
           run: |
             git clone https://github.com/perfsonar/project.git project
             case "${{ env.BUILD_OS }}" in
-              'ol8'|'el9')
+              'ol8'|'el9'|'el10')
                  cp project/toolbox/workflows/create-el-repo.sh .
                  ;;
               'd11'|'d12'|'u20'|'u22'|'u24')
-                cp project/toolbox/workflows/github-db-workflow.sh .
+                cp project/toolbox/workflows/create-db-repo.sh .
                 ;;
             esac       
             
@@ -82,94 +85,142 @@ jobs:
               echo "rund id $run_id"
               gh run download $run_id --repo perfsonar/$repo -D artifacts/$repo --name "$repo-${{ env.BUILD_OS  }}"  
               artifact_path="artifacts/$repo"
-              pwd
               echo "list artifact path"
               ls -al "$artifact_path"
               case "${{ env.BUILD_OS }}" in
-                'ol8'|'el9')
+                'ol8'|'el9'|'el10')
                   mkdir -p artifacts/RPMS
                   echo "copy to the artifacts RPM dir"
                   cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
                  ;;
                 'd11'|'d12'|'u20'|'u22'|'u24')                
+                  mkdir -p artifacts/debian
+                  if [ -d "$artifact_path" ]; then
+                     echo "copy directory $artifact_path"
+                     cp -r "$artifact_path" artifacts/debian/
+                  else
+                     echo "Directory $artifact_path not found, skipping copy"
+                  fi
+                  echo "*********************************************"
+                  echo "list the copied files"
                   ls -al artifacts/*
+                  echo "*********end copy artifacts for $artifact_path ****************"
                   ;;
               esac
             done < deps.txt
           env:
             GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
-
-        - name: list files
-          run: |      
-            pwd
-            ls -al artifacts
         
-        - uses: actions/upload-artifact@v4
+        - uses: actions/upload-artifact@v6
           with:
            name: ${{ github.event.repository.name }}-${{ env.BUILD_OS }}
            path: artifacts
            retention-days: 5
            
-        - name: Set up SSH
+        - name: Start SSH agent and add key
           run: |
+            set -euo pipefail
+            echo "Starting ssh-agent..."
+            eval "$(ssh-agent -s)"
+            # Persist agent for next step
+            echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+            echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+            echo "Setting up ~/.ssh directory..."
             mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            echo "Writing private key..."
+            echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            echo "Adding key to agent..."
+            echo "${{ secrets.SERVER_SSH_PASSPHRASE }}" | ssh-add ~/.ssh/id_ed25519
+            echo "Loaded identities:"
+            ssh-add -l
             
-        - name: Install SSH Key
-          uses: shimataro/ssh-key-action@v2
-          with:
-            key: ${{ secrets.SERVER_SSH_KEY }}
-            known_hosts: ${{ secrets.SERVER_HOST }}
-
-    
         - name: sign and copy artifact to server
           run: |
-            case "${{ env.BUILD_OS }}" in
-            'ol8'|'el9')
-              if [ "${{ env.BUILD_OS }}" = 'ol8' ]; then
-                echo "ol8"
-                el_version="8"
-                os_dir="el"
-             else
-               echo "el9"
-               el_version="9"
-               os_dir="el"
-             fi
+            echo "Prep the keys"
+            echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
+            echo "${{ secrets.GPG_PASSPHRASE }}" | tr -d '\r\n' > passphrase.txt
+            chmod 600 private.key passphrase.txt
 
-              echo "Prep the keys"
-              echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
-              echo "${{ secrets.GPG_PASSPHRASE }}" | tr -d '\r\n' > passphrase.txt
-              chmod 600 private.key passphrase.txt
-
-              echo "import keys"
-              gpg --batch --import private.key
-              KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
-              echo "KEYID=$KEYID" >> $GITHUB_ENV
-              echo "KEYID=$KEYID" 
+            echo "import keys"
+            gpg --batch --import private.key
+            KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ { print $5; exit }')
+            echo "KEYID=$KEYID" >> $GITHUB_ENV
+            echo "KEYID=$KEYID" 
               
-              # Write variables to the file
-              file="variables.txt"
-              echo "repo=$repo" > $file
-              echo "build_branch=${{ env.BUILD_BRANCH }}" >> $file
-              echo "el_version=$el_version" >> $file
-              echo "os_dir=$os_dir" >> $file
+            # Write variables to the file
+            file="variables.txt"
+            echo "repo=$repo" > $file
+            echo "build_branch=${{ env.BUILD_BRANCH }}" >> $file
+            echo "os_version=$os_version" >> $file
+            echo "os_dir=$os_dir" >> $file
+
+
+            case "${{ env.BUILD_OS }}" in
+            'ol8'|'el9'|'el10')
+              os_dir="el" 
+              os="${{ env.BUILD_OS }}"
+              os_version="${os##*[!0-9]}"
 
               echo "Create the repo"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}"
               
-              echo "Call the oneshot signer"
+              echo "Call the oneshot signer for $os_dir version $os_version"
               
-              curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign \
-              | sh -s - --passphrase passphrase.txt ./artifacts/RPMS "$KEYID"
+            # curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-signer/main/sign | sh -s - --passphrase passphrase.txt ./artifacts/RPMS "$KEYID"
 
-              echo "Create the repo"
+              echo "update the repo info"
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-el-repo.sh . "${{ env.BUILD_OS }}" 
    
+              echo "create dirs on server if needed"
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p  ~/distribution/rpm/$os_dir/$os_version/x86_64/${{ env.BUILD_BRANCH }}"
               echo "Rsync to the distro servers"
-              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} distro@${{ secrets.SERVER_HOST }} "mkdir -p /home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$el_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS"
-              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/RPMS/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/rpm/${{ env.BUILD_REPO }}/$os_dir/$el_version/x86_64/perfsonar/${{ env.BUILD_BRANCH }}/RPMS
+              rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/RPMS/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/distribution/rpm/$os_dir//$os_version/x86_64/${{ env.BUILD_BRANCH }}
             ;;
             'd11'|'d12'|'u20'|'u22'|'u24')  
-               rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" ./artifacts/ distro@${{ secrets.SERVER_HOST }}:/home/distro/distro/debian/${{ env.BUILD_REPO }}/${{ env.BUILD_OS }}
+              case "${{ env.BUILD_OS }}" in
+              'd11'|'d12')  
+                os_dir="debian" 
+                os="${{ env.BUILD_OS }}"
+                os_version="${os#d}"
+                echo "os_version=$os_version" >> $file
+                echo "os_dir=$os_dir" >> $file
+                ;;
+              'u20'|'u22'|'u24')  
+                os_dir="ubuntu" 
+                os="${{ env.BUILD_OS }}"
+                os_version="${os#u}"
+                echo "os_version=$os_version" >> $file
+                echo "os_dir=$os_dir" >> $file
+                ;;
+              esac
+               
+              echo "get the major version"
+              if [[ "${{ env.BUILD_REPO }}" == "nightly" ]]; then
+                branch="${{ env.BUILD_BRANCH }}"
+                MAJOR_VERSION="${branch%.*}.0"
+                echo "major version is $MAJOR_VERSION"
+              fi
+    
+             echo "run create-db-repo with docker oneshot"
+             curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run create-db-repo.sh . "${{ env.BUILD_OS }}" 
+             echo "create the dir and sync for the major version  "
+             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p ~/distribution/apt/$os_dir/$os_version/$MAJOR_VERSION"
+             echo "rsync the files "
+             echo "pwd"
+             pwd
+             echo "ls -al"
+             ls -al 
+             echo "what is in artifacts dir?"
+             ls -al ./artifacts
+             echo "whats is var repo?"
+             ls -al ./artifacts/repo
+
+             rsync -avz \
+             -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${{ secrets.SERVER_PORT }}" \
+             ./artifacts/repo \
+             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/distribution/apt/$os_dir/$os_version/$MAJOR_VERSION/
             ;;
             esac 
 

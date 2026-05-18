@@ -1,18 +1,17 @@
 name: initiate-build-workflow
 
-on:
+on: 
   push:
     branches: [ 'master' ]
-    tags:
-      - '*'       # and on any tag push
-
+    tags:  
+      - '*' 
+    
   schedule:
     - cron: "53 2 * * *"
-
-  workflow_dispatch: 
-env: 
+ 
+  workflow_dispatch:
+env:
   RUN_ID: ${{ github.run_id }} 
-  BUILD_BRANCH: '5.2.2' 
   BUILD_TYPE: 'FULL'
  
 jobs:
@@ -20,17 +19,33 @@ jobs:
   initiate-build:
      strategy:  
       matrix:
-          os: [  'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
+          os: [ 'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
+          build_branch: [ '5.3.0' ] 
+          #[ 'ol8', 'el9', 'd11', 'd12', 'u20', 'u22', 'u24' ] 
+          # 4/7/26 - el10 still under development so removing from matrix 
 
+ 
      runs-on: ubuntu-latest
      env:
        BUILD_REPO: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && 'staging' || 'nightly' }}
+       BUILD_BRANCH: ${{ matrix.build_branch }}
 
      steps:
+
           
         - name: Capture start date and time
           id: start_time
           run: echo "start_time=$(date -u)" >> $GITHUB_ENV
+
+        - name: Derive BUILD_BRANCH from tag (if present)
+          run: |
+            if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+              echo "BUILD_BRANCH=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+              echo "Using tag: ${GITHUB_REF_NAME}"
+            else
+              echo "BUILD_BRANCH=${BUILD_BRANCH}" >> "$GITHUB_ENV"
+              echo "Using default branch: ${BUILD_BRANCH}"
+            fi
 
         - name: Fetch build-vars.json from projects
           env:
@@ -40,14 +55,14 @@ jobs:
             echo "list dir"
             ls project/toolbox/workflows/ 
              case "${{ matrix.os }}" in
-              'ol8'|'el9')
+              'ol8'|'el9'|'el10')
                  cp project/toolbox/workflows/build-vars-el.json build-vars.json
                  ;;
               'u20'|'u22'|'u24')
-                cp project/toolbox/workflows/bulid-vars-ub.json build-vars.json
+                cp project/toolbox/workflows/build-vars-ub.json build-vars.json
                 ;;
               'd11'|'d12')
-                cp project/toolbox/workflows/bulid-vars-db.json build-vars.json
+                cp project/toolbox/workflows/build-vars-db.json build-vars.json
                 ;;
             esac
                           
@@ -88,7 +103,7 @@ jobs:
            
         - name: Pass Workflow
           if: env.BUILD_TYPE == 'FULL'
-          uses: actions/github-script@v6
+          uses: actions/github-script@v8
           with:
            github-token: ${{ secrets.GIT_ACTIONS }}
            script: |
