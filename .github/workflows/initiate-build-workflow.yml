@@ -50,22 +50,22 @@ jobs:
           fi
 
       - name: Fetch build-vars.json from projects
-          env:
-            github-token: ${{ secrets.GIT_ACTIONS }}
-          run: |
-            git clone https://github.com/perfsonar/project.git project
-            echo "list dir"
-            ls project/toolbox/workflows/
-             case "${{ matrix.os }}" in
-              'ol8'|'el9'|'el10')
-                 cp project/toolbox/workflows/build-vars-el.json build-vars.json
-                 ;;
-              'u20'|'u22'|'u24')
-                cp project/toolbox/workflows/build-vars-ub.json build-vars.json
+        env:
+          github-token: ${{ secrets.GIT_ACTIONS }}
+        run: |
+          git clone https://github.com/perfsonar/project.git project
+          echo "list dir"
+          ls project/toolbox/workflows/
+            case "${{ matrix.os }}" in
+            'ol8'|'el9'|'el10')
+              cp project/toolbox/workflows/build-vars-el.json build-vars.json
+              ;;
+            'u20'|'u22'|'u24')
+              cp project/toolbox/workflows/build-vars-ub.json build-vars.json
                 ;;
-              'd11'|'d12')
-                cp project/toolbox/workflows/build-vars-db.json build-vars.json
-                ;;
+            'd11'|'d12')
+              cp project/toolbox/workflows/build-vars-db.json build-vars.json
+              ;;
             esac
 
       - name: Add start time to build-vars.json
