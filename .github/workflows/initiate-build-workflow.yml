@@ -2,7 +2,7 @@ name: initiate-build-workflow
 
 on: 
   push:
-    branches: [ 'master' ]
+    branches: [ 'master', 'stage' ]
     tags:  
       - '*' 
     
