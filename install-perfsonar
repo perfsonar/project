@@ -32,6 +32,7 @@ OPTIONS:
                           to production.
   --dry-run             Don't do anything
   --no-log              Don't write a log into $HOME
+  --no-upgrade          Don't upgrade system packages before installation
   --ps-repo-version V   Use perfSONAR repo verion V on EL systems
 
 NOTE:
@@ -174,6 +175,7 @@ PS_REPO_VERSION=0.11-1
 REPO=production
 SECURITY=false
 TUNINGS=false
+UPGRADE=true
 
 while echo "$1" | egrep -q -e '^--'
 do
@@ -192,6 +194,10 @@ do
 	    ;;
 	--no-log)
 	    LOG=/dev/null
+	    shift
+	    ;;
+	--no-upgrade)
+	    UPGRADE=false
 	    shift
 	    ;;
 	--open-ssh)
@@ -331,10 +337,14 @@ install_redhat()
 	    ;;
     esac
 
-    narrate Cleaning and updating System
-
     do_dry dnf clean all
-    do_dry dnf -y update
+    do_dry dnf makecache
+
+    if $UPGRADE
+    then
+	narrate Cleaning and updating System
+	do_dry dnf -y update
+    fi
 
     if [ "${PS_BUNDLE}" != 'none' ]
     then
@@ -510,8 +520,11 @@ install_debian()
     narrate Updating repositories
     do_dry apt-get -y update
 
-    narrate Upgrading system
-    do_dry apt-get -y upgrade
+    if $UPGRADE
+    then
+       narrate Upgrading system
+       do_dry apt-get -y upgrade
+    fi
 
     if [ "${PS_BUNDLE}" != 'none' ]
     then
