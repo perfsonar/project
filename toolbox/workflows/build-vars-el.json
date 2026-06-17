@@ -62,12 +62,8 @@
             "deps": [ "minor-packages",  "pscheduler",  "psconfig" ]
         },
         {
-            "name": "pstracetree", 
-            "deps": []
-        },
-        {
             "name": "microdep", 
-            "deps": [ "pstracetree" ]
+            "deps": []
         },
         {
             "name": "bundles", 
@@ -89,7 +85,7 @@
             "deps": [ "minor-packages", "i2util", "owamp", "pscheduler", 
                 "perl-shared", "host-metrics", "psconfig", "elmond", "grafana",
                 "logstash", "archive", "ls-registration-daemon", "psconfig-web",
-                "sca-auth", "pstracetree", "microdep", "toolkit", "bundles", "perfsonar-repo" ]
+                "sca-auth", "microdep", "toolkit", "bundles", "perfsonar-repo" ]
         }
     ],
     "buildids": {
