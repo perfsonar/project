@@ -53,12 +53,8 @@
             "deps": [ "perl-shared", "pscheduler", "psconfig", "minor-packages", "logstash" ]
         },
         {
-            "name": "pstracetree", 
-            "deps": []
-        },
-        {
             "name": "microdep", 
-            "deps": [ "pstracetree" ]
+            "deps": []
         },
         {
             "name": "bundles", 
@@ -75,7 +71,7 @@
             "name": "project", 
             "deps": [ "minor-packages", "i2util", "owamp", "pscheduler", 
                 "perl-shared", "ls-registration-daemon", "host-metrics", "psconfig",
-                "elmond", "grafana", "logstash", "archive", "pstracetree", "microdep",
+                "elmond", "grafana", "logstash", "archive", "microdep",
                  "toolkit", "bundles" ]
         }
     ],
