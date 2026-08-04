@@ -15,7 +15,7 @@ BUNDLE is one of tools, core, testpoint, testpoint-shared, toolkit,
   archive or none.  The 'none' bundle installs nothing but will still
   install anything directed by other options.
 
-URL points to a pSConfig file that will be applied with 'psconfig
+URL(s) point to a pSConfig files that will be applied with 'psconfig
 remote add' if pSConfig is installed.
 
 OPTIONS:
@@ -607,7 +607,7 @@ main()
 
     # pSConfig
 
-    if type psconfig > /dev/null
+    if type psconfig > /dev/null 2>&1
     then
 	if [ $# -gt 0 ]
 	then
