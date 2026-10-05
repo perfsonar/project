@@ -2,7 +2,7 @@ name: initiate-build-workflow
 
 on: 
   push:
-    branches: [ 'master' ]
+    branches: [ 'main' ]
     tags:  
       - '*' 
     
@@ -111,7 +111,7 @@ jobs:
                owner: 'perfsonar',
                repo:  '${{ env.NEXTREPO}}',
                workflow_id: '${{ env.NEXTREPO }}-workflow.yml',
-               ref: 'master',
+               ref: 'main',
               inputs: {
                  BUILD_VARS_JSON: '${{ env.BUILD_VARS_JSON}}'
                }
